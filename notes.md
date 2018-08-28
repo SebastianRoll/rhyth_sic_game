@@ -38,3 +38,14 @@ Traceback (most recent call last):
   File "/lib/uasyncio/core.py", line 48, in call_soon
 IndexError: full
 ```
+
+## NeoPixel
+
+NeoPixels receive data from a fixed-frequency 800 KHz datastream (except for “V1” Flora pixels, which use 400 KHz). Each bit of data therefore requires 1/800,000 sec — 1.25 microseconds. One pixel requires 24 bits (8 bits each for red, green blue) — 30 microseconds. After the last pixel’s worth of data is issued, the stream must stop for at least 50 microseconds for the new colors to “latch.”
+
+For a strip of 100 pixels, that’s (100 * 30) + 50, or 3,050 microseconds. 1,000,000 / 3,050 = 328 updates per second, approximately.
+
+220 rgbw = 220*(8*4) = 7040
+280 rgb = 280*(8*3) = 6720
+
+total = 7040 + 6720 + 50 = 13810 us = 13.81 ms -> 72.4 Hz

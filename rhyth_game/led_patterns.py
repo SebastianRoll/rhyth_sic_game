@@ -59,16 +59,18 @@ async def running_lights(np, color, wave_delay=0.1):
 
 
 async def rainbow_cycle(np, speed_delay=0.1):
+    leds_count = np.n
+    c = bytearray(3)
     while True:
-        for j in range(0, 256*5, 30):
-            for i in range(np.n):
-                c = wheel(int(((i*256/np.n)+j)) & 255)
+        for j in range(0, 256*5, 1):
+            for i in range(leds_count):
+                wheel(c, ((i*256//leds_count)+j) & 255)
                 np[i] = c
             await asyncio.sleep(speed_delay)
 
 
-def wheel(wheel_pos):
-    c = [0,0,0]
+def wheel(c, wheel_pos):
+
     if wheel_pos < 85:
         c[0] = wheel_pos * 3
         c[1] = 255 - wheel_pos * 3
@@ -87,44 +89,28 @@ def wheel(wheel_pos):
 
 def setPixelHeatColor(np, idx, temperature):
     # Scale 'heat' down from 0-255 to 0-191
-    t192 = round(temperature*191/255)
+    t192 = temperature*191//255
 
     # calculate ramp up from
-    heatramp = int(t192 / 3)
-    heatramp = min(255, heatramp*4)
+    heatramp = t192 & 63
+    heatramp <<= 2
 
-    # byte heatramp = t192 & 0x3F; // 0..63
-    # heatramp <<= 2; // scale up to 0..252
-
-    if t192 > 150:
-        np[idx] = (255, 128, int(((t192-130)/61)*255))
-    elif t192 > 75:
-        np[idx] = (255, int(((t192-75)/75)*127), 0)
+    if t192 > 128:
+        np[idx] = (255, 255, heatramp)
+    elif t192 > 64:
+        np[idx] = (255, heatramp, 0)
     else:
         np[idx] = (heatramp, 0, 0)
-    #
-    # # calculate ramp up from
-    # heatramp = t192 & b'0x3F'
-    # heatramp <<= 2
-    # # byte heatramp = t192 & 0x3F; // 0..63
-    # # heatramp <<= 2; // scale up to 0..252
-    #
-    # if t192 > b'0x80':
-    #     np[idx] = (255, 255, heatramp)
-    # elif t192 > b'0x40':
-    #     np[idx] = (255, heatramp, 0)
-    # else:
-    #     np[idx] = (heatramp, 0, 0)
-
 
 
 async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
-    heat = bytearray(np.n)
+    num_leds = np.n
+    heat = bytearray(num_leds)
     while True:
 
         # Step 1.  Cool down every cell a little
-        for i in range(np.n):
-            cooldown = random.randint(0, int((((cooling*10)/np.n)+2)))
+        for i in range(num_leds):
+            cooldown = random.randint(0, (((cooling*10)//num_leds)+2))
 
             if cooldown>=heat[i]:
                 heat[i] = 0
@@ -133,7 +119,7 @@ async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
 
         # Step 2.  Heat from each cell drifts 'up' and diffuses a little
         for k in range(np.n-1, 2, -1):
-            heat[k] = int((heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3)
+            heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) // 3
 
         # Step 3.  Randomly ignite new 'sparks' near the bottom
         if random.randint(0,255) < sparking:
@@ -141,7 +127,7 @@ async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
             heat[y] = heat[y] + random.randint(160, 255)
 
         # Step 4.  Convert heat to LED colors
-        for j in range(np.n):
+        for j in range(num_leds):
             setPixelHeatColor(np, j, heat[j])
 
         # np.write()
