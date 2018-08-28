@@ -22,7 +22,7 @@ async def simple2(np):
 
 
 
-async def cylon_bounce(np, color, eye_size=2, speed_delay=0.03, return_delay=0.100):
+async def cylon_bounce(np, color, eye_size=2, speed_delay=30, return_delay=100):
     async def move_eye(i):
         np.fill((0, 0, 0, 0))
         color_fade = [int(c / 10) for c in color]
@@ -30,19 +30,19 @@ async def cylon_bounce(np, color, eye_size=2, speed_delay=0.03, return_delay=0.1
         for j in range(1, eye_size + 1):
             np[i + j] = color
         np[i + eye_size + 1] = color_fade
-        await asyncio.sleep(speed_delay)
+        await asyncio.sleep_ms(speed_delay)
 
     for i in range(np.n - eye_size - 2):
         await move_eye(i)
 
     if return_delay:
-        await asyncio.sleep(return_delay)
+        await asyncio.sleep_ms(return_delay)
         for i in range(np.n - eye_size - 2, 0, -1):
             await move_eye(i)
-        await asyncio.sleep(return_delay)
+        await asyncio.sleep_ms(return_delay)
 
 
-async def running_lights(np, color, wave_delay=0.1):
+async def running_lights(np, color, wave_delay=100):
     position = 0
 
     for j in range(np.n * 2):
@@ -54,10 +54,10 @@ async def running_lights(np, color, wave_delay=0.1):
             # float level = sin(i+Position) * 127 + 128;
             np[i] = [int(((math.sin(i + position) * 127 + 128) / 255) * c) for c in color]
 
-        await asyncio.sleep(wave_delay)
+        await asyncio.sleep_ms(wave_delay)
 
 
-async def rainbow_cycle(np, speed_delay=0.1):
+async def rainbow_cycle(np, speed_delay=100):
     leds_count = np.n
     c = bytearray(3)
     while True:
@@ -65,7 +65,7 @@ async def rainbow_cycle(np, speed_delay=0.1):
             for i in range(leds_count):
                 wheel(c, ((i*256//leds_count)+j) & 255)
                 np[i] = c
-            await asyncio.sleep(speed_delay)
+            await asyncio.sleep_ms(speed_delay)
 
 
 def wheel(c, wheel_pos):
@@ -86,6 +86,7 @@ def wheel(c, wheel_pos):
         c[2] = 255 - wheel_pos * 3
     return c
 
+
 def setPixelHeatColor(np, idx, temperature):
     # Scale 'heat' down from 0-255 to 0-191
     t192 = temperature*191//255
@@ -102,7 +103,7 @@ def setPixelHeatColor(np, idx, temperature):
         np[idx] = (heatramp, 0, 0)
 
 
-async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
+async def fire(np, cooling=50, sparking=120, speed_delay=10):
     num_leds = np.n
     heat = bytearray(num_leds)
     while True:
@@ -129,7 +130,7 @@ async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
         for j in range(num_leds):
             setPixelHeatColor(np, j, heat[j])
 
-        await asyncio.sleep(speed_delay)
+        await asyncio.sleep_ms(speed_delay)
 
 
 def fade_to_black(np, idx, fade_value):
@@ -138,7 +139,7 @@ def fade_to_black(np, idx, fade_value):
     np[idx] = new_color
 
 
-async def meteor(np, color=[100,200,50], meteor_size=5, meteor_trail_decay=64, meteor_random_decay=True, speed_delay=0.05):
+async def meteor(np, color=[100,200,50], meteor_size=5, meteor_trail_decay=64, meteor_random_decay=True, speed_delay=50):
     np.fill((0,0,0))
     for i in range(np.n*2):
         # fade brightness all LEDs one step
@@ -151,7 +152,7 @@ async def meteor(np, color=[100,200,50], meteor_size=5, meteor_trail_decay=64, m
             if i-j < np.n:
                 np[i-j] = color
 
-        await asyncio.sleep(speed_delay)
+        await asyncio.sleep_ms(speed_delay)
 
 
 
