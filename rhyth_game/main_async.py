@@ -11,9 +11,9 @@ from rhyth_game.ledlights_async import refresh_leds, pulse_if_event
 
 loop = asyncio.get_event_loop()
 
-outer = neopixel.NeoPixel(Pin(16), 220, bpp=4, timing=True)
-outer.fill([0,0,0,0])
-outer.write()
+# outer = neopixel.NeoPixel(Pin(16), 220, bpp=4, timing=True)
+# outer.fill([0,0,0,0])
+# outer.write()
 outer_top = OuterRing(outer, list(range(110)))
 outer_bot = OuterRing(outer, list(range(219,110,-1)))
 

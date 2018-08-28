@@ -49,3 +49,8 @@ For a strip of 100 pixels, that’s (100 * 30) + 50, or 3,050 microseconds. 1,00
 280 rgb = 280*(8*3) = 6720
 
 total = 7040 + 6720 + 50 = 13810 us = 13.81 ms -> 72.4 Hz
+
+# NP.WRITE()
+
+2.5 ms for 68 rgb leds
+9.5 ms for 220 grbw leds

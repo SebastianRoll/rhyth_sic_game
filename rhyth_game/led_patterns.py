@@ -1,4 +1,5 @@
 import random
+import utils
 
 try:
     import uasyncio as asyncio
@@ -26,34 +27,37 @@ async def simple2(np):
 async def cylon_bounce(np, color, eye_size=2, speed_delay=30, return_delay=100):
     async def move_eye(i):
         np.fill((0, 0, 0, 0))
-        color_fade = [int(c / 10) for c in color]
+        color_fade = [c // 10 for c in color]
         np[i] = color_fade
         for j in range(1, eye_size + 1):
             np[i + j] = color
         np[i + eye_size + 1] = color_fade
         await asyncio.sleep_ms(speed_delay)
 
-    for i in range(np.n - eye_size - 2):
-        await move_eye(i)
-
-    if return_delay:
-        await asyncio.sleep_ms(return_delay)
-        for i in range(np.n - eye_size - 2, 0, -1):
+    while True:
+        for i in range(np.n - eye_size - 2):
             await move_eye(i)
-        await asyncio.sleep_ms(return_delay)
+
+        if return_delay:
+            await asyncio.sleep_ms(return_delay)
+            for i in range(np.n - eye_size - 2, 0, -1):
+                await move_eye(i)
+            await asyncio.sleep_ms(return_delay)
 
 
 async def running_lights(np, color, wave_delay=100):
     position = 0
-
-    for j in range(np.n * 2):
+    num_leds = np.n
+    for j in range(num_leds* 2):
         position += 1
-        for i in range(np.n):
+        for i in range(num_leds):
             # sine wave, 3 offset waves make a rainbow!
             # float level = sin(i+Position) * 127 + 128;
             # setPixel(i,level,0,0);
             # float level = sin(i+Position) * 127 + 128;
-            np[i] = [int(((math.sin(i + position) * 127 + 128) / 255) * c) for c in color]
+            # TODO: sin() hashmap!
+            expr = (math.sin(i + position) * 127 + 128) / 255
+            np[i] = [int(expr * c) for c in color]
 
         await asyncio.sleep_ms(wave_delay)
 
@@ -88,6 +92,7 @@ def wheel(c, wheel_pos):
     return c
 
 
+
 def setPixelHeatColor(np, idx, temperature):
     # Scale 'heat' down from 0-255 to 0-191
     t192 = temperature*191//255
@@ -105,52 +110,58 @@ def setPixelHeatColor(np, idx, temperature):
 
 
 async def fire(np, cooling=50, sparking=120, speed_delay=10):
-    num_leds = np.n
-    heat = bytearray(num_leds)
+    heat = bytearray(np.n)
     while True:
-
-        # Step 1.  Cool down every cell a little
-        for i in range(num_leds):
-            cooldown = random.randint(0, (((cooling*10)//num_leds)+2))
-
-            if cooldown>=heat[i]:
-                heat[i] = 0
-            else:
-                heat[i] = heat[i] - cooldown
-
-        # Step 2.  Heat from each cell drifts 'up' and diffuses a little
-        for k in range(np.n-1, 2, -1):
-            heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) // 3
-
-        # Step 3.  Randomly ignite new 'sparks' near the bottom
-        if random.randint(0,255) < sparking:
-            y = random.randint(0,7)
-            heat[y] = heat[y] + random.randint(160, 255)
-
-        # Step 4.  Convert heat to LED colors
-        for j in range(num_leds):
-            setPixelHeatColor(np, j, heat[j])
-
+        fire_once(np, heat, cooling, sparking)
         await asyncio.sleep_ms(speed_delay)
+
+
+def fire_once(np, heat, cooling=50, sparking=120):
+    num_leds = np.n
+
+    # Step 1.  Cool down every cell a little
+    for i in range(num_leds):
+        cooldown = random.randint(0, (((cooling*10)//num_leds)+2))
+
+        if cooldown>=heat[i]:
+            heat[i] = 0
+        else:
+            heat[i] = heat[i] - cooldown
+
+    # Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for k in range(np.n-1, 2, -1):
+        heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) // 3
+
+    # Step 3.  Randomly ignite new 'sparks' near the bottom
+    if random.randint(0,255) < sparking:
+        y = random.randint(0,7)
+        heat[y] = heat[y] + random.randint(160, 255)
+
+    # Step 4.  Convert heat to LED colors
+    for j in range(num_leds):
+        setPixelHeatColor(np, j, heat[j])
+
 
 
 def fade_to_black(np, idx, fade_value):
     old_color = np[idx]
-    new_color = list((int(c-(c*fade_value/256)) if c>10 else 0 for c in old_color))
+    new_color = [c-(c*fade_value//256) if c>10 else 0 for c in old_color]
     np[idx] = new_color
 
 
-async def meteor(np, color=[100,200,50], meteor_size=5, meteor_trail_decay=64, meteor_random_decay=True, speed_delay=50):
-    np.fill((0,0,0))
-    for i in range(np.n*2):
+async def meteor(np, color, meteor_size=5, meteor_trail_decay=64, meteor_random_decay=True, speed_delay=50):
+    black = bytearray(3)
+    np.fill(black)
+    num_leds = np.n
+    for i in range(num_leds*2):
         # fade brightness all LEDs one step
-        for j in range(np.n):
+        for j in range(num_leds):
             if not meteor_random_decay or random.randint(0,10)>5:
                 fade_to_black(np, j, meteor_trail_decay)
 
         # draw meteor
         for j in range(meteor_size):
-            if i-j < np.n:
+            if i-j < num_leds:
                 np[i-j] = color
 
         await asyncio.sleep_ms(speed_delay)
