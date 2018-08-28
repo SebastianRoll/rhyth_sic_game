@@ -1,5 +1,4 @@
-import random
-
+import machine
 try:
     import uasyncio as asyncio
 except ImportError:
@@ -110,7 +109,7 @@ async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
 
         # Step 1.  Cool down every cell a little
         for i in range(num_leds):
-            cooldown = random.randint(0, (((cooling*10)//num_leds)+2))
+            cooldown = machine.random(((cooling*10)//num_leds)+2)
 
             if cooldown>=heat[i]:
                 heat[i] = 0
@@ -122,15 +121,14 @@ async def fire(np, cooling=50, sparking=120, speed_delay=0.010):
             heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) // 3
 
         # Step 3.  Randomly ignite new 'sparks' near the bottom
-        if random.randint(0,255) < sparking:
-            y = random.randint(0,7)
-            heat[y] = heat[y] + random.randint(160, 255)
+        if machine.random(255) < sparking:
+            y = machine.random(7)
+            heat[y] = heat[y] + machine.random(160, 255)
 
         # Step 4.  Convert heat to LED colors
         for j in range(num_leds):
             setPixelHeatColor(np, j, heat[j])
 
-        # np.write()
         await asyncio.sleep(speed_delay)
 
 
@@ -145,7 +143,7 @@ async def meteor(np, color=[100,200,50], meteor_size=5, meteor_trail_decay=64, m
     for i in range(np.n*2):
         # fade brightness all LEDs one step
         for j in range(np.n):
-            if not meteor_random_decay or random.randint(0,10)>5:
+            if not meteor_random_decay or machine.random(10)>5:
                 fade_to_black(np, j, meteor_trail_decay)
 
         # draw meteor
