@@ -104,6 +104,16 @@ async def refresh_leds(np, lock, rate_ms=60):
         # gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
         await asyncio.sleep_ms(rate_ms)
 
+async def refresh_leds_2(np, led_array, lock, rate_ms=60):
+    while True:
+        await lock.acquire()
+        np.buf = led_array
+        np.write()
+        lock.release()
+        # gc.collect()
+        # gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+        await asyncio.sleep_ms(rate_ms)
+
 
 async def pulse_if_event(np, event):
     while True:

@@ -1,6 +1,6 @@
 import random
 import utils
-
+from array import array
 try:
     import uasyncio as asyncio
 except ImportError:
@@ -93,7 +93,7 @@ def wheel(c, wheel_pos):
 
 
 
-def setPixelHeatColor(np, idx, temperature):
+def setPixelHeatColor(np, idx, temperature, val):
     # Scale 'heat' down from 0-255 to 0-191
     t192 = temperature*191//255
 
@@ -102,26 +102,41 @@ def setPixelHeatColor(np, idx, temperature):
     heatramp <<= 2
 
     if t192 > 128:
-        np[idx] = (255, 255, heatramp)
+        val[0] = 255
+        val[1] = 255
+        val[2] = heatramp
     elif t192 > 64:
-        np[idx] = (255, heatramp, 0)
+        val[0] = 255
+        val[1] = heatramp
+        val[2] = 0
     else:
-        np[idx] = (heatramp, 0, 0)
+        val[0] = heatramp
+        val[1] = 0
+        val[2] = 0
+    np[idx*3] = val[0]
+    np[idx*3+1] = val[1]
+    np[idx*3+2] = val[2]
 
 
-async def fire(np, cooling=50, sparking=120, speed_delay=10):
-    heat = bytearray(np.n)
+async def fire(np, cooling=50, sparking=120, speed_delay=20):
+    # heat = bytearray(np.n)
+    heat = bytearray(len(np)//3)
+    val = bytearray(3)
+    # num_leds = np.n
+    num_leds = len(np)//3
     while True:
-        fire_once(np, heat, cooling, sparking)
+        fire_once(np, heat, val, num_leds, cooling, sparking)
         await asyncio.sleep_ms(speed_delay)
 
+from utils import timed_function
 
-def fire_once(np, heat, cooling=50, sparking=120):
-    num_leds = np.n
-
+@timed_function
+def fire_once(np, heat, val, num_leds, cooling=50, sparking=120):
     # Step 1.  Cool down every cell a little
+
+    max_num_cooling = (((cooling*10)//num_leds)+2)
     for i in range(num_leds):
-        cooldown = random.randint(0, (((cooling*10)//num_leds)+2))
+        cooldown = random.randint(0, max_num_cooling)
 
         if cooldown>=heat[i]:
             heat[i] = 0
@@ -129,7 +144,7 @@ def fire_once(np, heat, cooling=50, sparking=120):
             heat[i] = heat[i] - cooldown
 
     # Step 2.  Heat from each cell drifts 'up' and diffuses a little
-    for k in range(np.n-1, 2, -1):
+    for k in range(num_leds-1, 2, -1):
         heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) // 3
 
     # Step 3.  Randomly ignite new 'sparks' near the bottom
@@ -139,7 +154,7 @@ def fire_once(np, heat, cooling=50, sparking=120):
 
     # Step 4.  Convert heat to LED colors
     for j in range(num_leds):
-        setPixelHeatColor(np, j, heat[j])
+        setPixelHeatColor(np, j, heat[j], val)
 
 
 
