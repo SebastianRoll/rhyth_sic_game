@@ -4,7 +4,7 @@ try:
     from asyn import Semaphore
 except ImportError:
     from asyncio import Semaphore
-
+from animations.fire import Fire
 
 class Pulse:
     def __init__(self):
@@ -32,6 +32,10 @@ async def queue_put(queue, iterable):
     async for n in iterable:
         await queue.put(n)
 
+async def loop_stuff(animation):
+    while True:
+        np = await animation
+        await asyncio.sleep(0.1)
 
 if __name__ == "__main__":
     import asyncio
@@ -44,5 +48,8 @@ if __name__ == "__main__":
     max_concurrent = 8
     for _ in range(max_concurrent):
         loop.create_task(consume(queue, pulse.pulse))
+
+    fire_anim = Fire(num_leds=10)
+    loop.create_task(loop_stuff(fire_anim))
 
     loop.run_forever()

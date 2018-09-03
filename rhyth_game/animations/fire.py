@@ -16,13 +16,24 @@ async def sleep_ms(duration):
         await asyncio.sleep(duration/1000)
 
 class Fire:
-    def __init__(self, np, cooling=50, sparking=120, speed_delay=20):
-        self.np = np
+    def __init__(self, num_leds, cooling=50, sparking=120, speed_delay=20):
         self.cooling = cooling
         self.sparking = sparking
         self.speed_delay = speed_delay
-        self.heat = bytearray(len(np) // 3)
-        # self.num_leds = len(np) // 3
+        self.num_leds = num_leds
+        self.heat = bytearray(num_leds)
+
+    def __await__(self):
+        print('__await__ called')
+        yield from asyncio.sleep(0)
+        self.fire_once()  # Other coros get scheduled here
+        np = self.get_color_array()
+        ar_ints = struct.unpack('>{}B'.format(self.num_leds*3), np)
+        ar_leds = [ar_ints[r:r+3] for r in range(0, len(ar_ints),3)]
+        print(ar_leds)
+        return np
+
+    __iter__ = __await__  # See note below
 
     async def start(self):
         np = self.np
@@ -33,8 +44,8 @@ class Fire:
             print(struct.unpack('>30B', np))
             # yield np
 
-    def fire_once(self, np):
-        num_leds = len(np) // 3
+    def fire_once(self):
+        num_leds = self.num_leds
         heat = self.heat
         # Step 1.  Cool down every cell a little
         max_num_cooling = (((self.cooling * 10) // num_leds) + 2)
@@ -55,12 +66,18 @@ class Fire:
             y = random.randint(0, 7)
             heat[y] = min(255, heat[y] + random.randint(160, 255))
 
+    def get_color_array(self):
         # Step 4.  Convert heat to LED colors
+        num_leds = self.num_leds
+        np = bytearray(num_leds*3)
+        heat = self.heat
         for j in range(num_leds):
             color =self.heat_to_color(heat[j])
             np[j * 3] = color[0]
             np[j * 3 + 1] = color[1]
             np[j * 3 + 2] = color[2]
+
+        return np
 
     @staticmethod
     def heat_to_color(temperature):
