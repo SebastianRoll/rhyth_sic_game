@@ -1,16 +1,26 @@
+from machine import Timer, RTC
 from music import Song
+from touch import Touch
 from time import time
 try:
     from asyn import Semaphore
 except ImportError:
     from asyncio import Semaphore
+try:
+    import uasyncio as asyncio
+except ImportError:
+    import asyncio
+
 from animations.fire import Fire
+
 
 class Pulse:
     def __init__(self):
         self.t_start = time()
+        self.pulses = []
 
     async def pulse(self, note):
+        self.pulses.append(note[0])
         duration = 1
         time_wait = (note[0] + self.t_start) - time()
         if time_wait >= 0:
@@ -20,6 +30,11 @@ class Pulse:
         for i in range(parts):
             print(i, note[0], note[1])
             await asyncio.sleep(duration/parts)
+
+    async def receive_touch(self, event):
+        while True:
+            ev = await event
+            timestamp = ev.value()
 
 
 async def consume(queue, callback):
@@ -38,8 +53,11 @@ async def loop_stuff(animation):
         np = await animation
         await asyncio.sleep(0.1)
 
-if __name__ == "__main__":
-    import asyncio
+async def report_touch(touch, delay=0.5):
+    print(touch.istouch)
+    await asyncio.sleep(delay)
+
+def main():
     loop = asyncio.get_event_loop()
     queue = asyncio.Queue(maxsize=8)
     song = Song('dr_chaos')
@@ -53,4 +71,17 @@ if __name__ == "__main__":
     fire_anim = Fire(num_leds=10)
     loop.create_task(loop_stuff(fire_anim))
 
+    touch_pins = [1,2,3]
+    touch = Touch(touch_pins)
+    timer = Timer(0)
+    timer.init(period=100, mode=Timer.PERIODIC, callback=touch.cb)
+    loop.create_task(report_touch(touch))
+
+    # import esp
+    # esp.neopixel_write(pin, grb_buf, is800khz)
+    # rtc = RTC()
+    # rtc.datetime()
     loop.run_forever()
+
+if __name__ == "__main__":
+    main()

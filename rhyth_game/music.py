@@ -13,9 +13,10 @@ class Song:
         self.path = path
         self.notes = self.song_dict['charts'][0]['notes']
         self.open_file = None
+        self.difficulty = 'easy'
 
     def __enter__(self):
-        self.open_file = open(os.path.join('songs',self.path,'easy.csv'), 'r')
+        self.open_file = open(os.path.join('songs',self.path,'{}.csv'.format(self.difficulty)), 'r')
         self.open_file.readline()
         return self
 
