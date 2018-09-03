@@ -21,6 +21,7 @@ diameter inner circle = 12.6 cm
 
 TODO:
 
+* test cmath
 * test FancyLED
 * test main_button.py
 * test led_patterns.py

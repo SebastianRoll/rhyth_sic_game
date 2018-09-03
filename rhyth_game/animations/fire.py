@@ -9,11 +9,13 @@ try:
 except ImportError:
     import asyncio
 
+
 async def sleep_ms(duration):
     try:
         await asyncio.sleep_ms(duration)
     except AttributeError:
         await asyncio.sleep(duration/1000)
+
 
 class Fire:
     def __init__(self, num_leds, cooling=50, sparking=120, speed_delay=20):

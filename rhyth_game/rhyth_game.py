@@ -29,8 +29,9 @@ async def consume(queue, callback):
 
 
 async def queue_put(queue, iterable):
-    async for n in iterable:
-        await queue.put(n)
+    with iterable as it:
+        async for n in it:
+            await queue.put(n)
 
 async def loop_stuff(animation):
     while True:
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     import asyncio
     loop = asyncio.get_event_loop()
     queue = asyncio.Queue(maxsize=8)
-    song = Song()
+    song = Song('dr_chaos')
     loop.create_task(queue_put(queue, song))
     pulse = Pulse()
 
