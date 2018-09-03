@@ -27,6 +27,7 @@ class Song:
 
     async def __anext__(self):
         beat = await self.get_beat()
+        beat = [float(el) for el in beat.strip('\n').split(',')]
         if beat:
             return beat
         else:
