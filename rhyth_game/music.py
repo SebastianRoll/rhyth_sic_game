@@ -1,9 +1,7 @@
 import os
-from time import time, sleep
 from songs.dr_chaos.meta import dr_chaos
-
-# import pandas as pd
-# df = pd.DataFrame(song['charts'][2]['notes'], columns=['time', 'note'])
+from songs import song_list
+from yx5300 import mp3
 
 
 class Song:
@@ -44,3 +42,12 @@ class Song:
         beat = self.notes[self.index]
         self.index += 1
         return beat
+
+
+class SongMenu:
+    def __init__(self, title='dr_chaos'):
+        self.title = title
+        self.song = Song(title)
+
+    def play(self):
+        mp3.play_track(song_list[self.title])
