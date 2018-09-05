@@ -2,7 +2,7 @@ import yx5300 as cmd
 from machine import UART
 
 
-class MP3:
+class Mp3:
     def __init__(self, volume_level=15):
         self.uart = UART(2, baudrate=9600, rx=25, tx=32, timeout=10)
         self.volume_level = volume_level

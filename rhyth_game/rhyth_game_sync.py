@@ -1,7 +1,7 @@
 import time
 import music
 from songs import song_list
-from yx5300 import mp3
+from yx5300.mp3_rhythgame import Mp3
 
 class Points:
     def __init__(self):
@@ -22,6 +22,7 @@ class Game:
     def __init__(self, song_title):
         self.song = music.Song(song_title)
         self.points = Points()
+        self.mp3 = Mp3()
 
         # beats
         self.notes_beats = {k:[] for k in range(8)}
@@ -36,8 +37,9 @@ class Game:
         self.beat_buffer_padding_ms = 300
 
     def start(self):
-        mp3.play_track(song_list[self.song.title])
+        self.mp3.play_track(song_list[self.song.title])
         self.ts_start = self.time()
+        raise NotImplementedError
 
     @property
     def time_expired(self):
