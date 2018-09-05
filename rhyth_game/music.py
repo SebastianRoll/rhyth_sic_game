@@ -5,16 +5,17 @@ from yx5300 import mp3
 
 
 class Song:
-    def __init__(self, path):
+    def __init__(self, title):
         self.song_dict = dr_chaos
         self.index = 0
-        self.path = path
+        self.title = title
         self.notes = self.song_dict['charts'][0]['notes']
         self.open_file = None
         self.difficulty = 'easy'
+        self.beat_ms_before_hit = 1000
 
     def __enter__(self):
-        self.open_file = open(os.path.join('songs',self.path,'{}.csv'.format(self.difficulty)), 'r')
+        self.open_file = open(os.path.join('songs', self.title, '{}.csv'.format(self.difficulty)), 'r')
         self.open_file.readline()
         return self
 

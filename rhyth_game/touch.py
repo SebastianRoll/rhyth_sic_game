@@ -1,16 +1,32 @@
 from machine import Pin, TouchPad
+import time
+
 
 class Touch:
     def __init__(self, touch_pins, threshold=400):
         self.touchpads = [TouchPad(Pin(pin)) for pin in touch_pins]
         self.threshold = threshold
-        self.istouch = array(len(touch_pins))
+        self.cur_time = time.time
+        self.debounce_ms = 50
+
+        cur_time = self.cur_time()
+        self.ts_touches = [cur_time] * len(touch_pins)
 
     def cb(self):
-        istouch = self.istouch
+        ts_touches = self.ts_touches
         threshold = self.threshold
+        debounce_ms = self.debounce_ms
+
+        is_touched = bytearray(len(ts_touches))
+
+        ts = self.cur_time()
         for i, t in enumerate(self.touchpads):
-            if t.read() < threshold:
-                istouch[i] = 1
+            if t.read() < threshold and (ts - ts_touches[i]) > debounce_ms:
+                ts_touches[i] = ts
+                is_touched[i] = 1
             else:
-                istouch[i] = 0
+                pass
+                # istouch[i] = 0
+        # return indices that are 1
+        return [i for i,v in is_touched if v]
+

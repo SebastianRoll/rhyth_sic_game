@@ -20,6 +20,9 @@ from animations.fire import Fire
 
 
 class Note:
+    """
+    Beats for a single note
+    """
     def __init__(self, duration, steps=34):
         self.duration = duration
         self.steps = steps
