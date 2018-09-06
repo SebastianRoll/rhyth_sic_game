@@ -39,7 +39,7 @@ class Game:
         self.beat_buffer = {k:[] for k in range(8)}
 
         # time
-        self.time = time.time
+        self.time = time.ticks_ms
         self.ts_start = self.time()
         self.time_window_max = 100
 
@@ -53,7 +53,7 @@ class Game:
         raise NotImplementedError
 
     def time_expired(self):
-        return (self.time() - self.ts_start) * 1000
+        return self.time() - self.ts_start
 
     def fill_beat_buffer(self):
         time_expired = self.time_expired()
