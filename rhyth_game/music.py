@@ -1,7 +1,10 @@
-import os
-from songs.dr_chaos.meta import dr_chaos
-from songs import song_list
-from yx5300 import mp3
+# from songs.dr_chaos.meta import dr_chaos
+from meta import dr_chaos
+# from songs import song_list
+song_list = {
+    'dr_chaos': 1,
+}
+
 
 
 class Song:
@@ -9,18 +12,19 @@ class Song:
         self.song_dict = dr_chaos
         self.index = 0
         self.title = title
-        self.notes = self.song_dict['charts'][0]['notes']
-        self.open_file = None
+        # self.notes = self.song_dict['charts'][0]['notes']
+        self._open_file = None
         self.difficulty = 'easy'
         self.beat_ms_before_hit = 1000
 
     def __enter__(self):
-        self.open_file = open(os.path.join('songs', self.title, '{}.csv'.format(self.difficulty)), 'r')
-        self.open_file.readline()
+        # self.open_file = open(os.path.join('songs', self.title, '{}.csv'.format(self.difficulty)), 'r')
+        self._open_file = open('{}.csv'.format(self.difficulty), 'r')
+        self._open_file.readline()
         return self
 
     def __exit__(self, *args):
-        self.open_file.close()
+        self._open_file.close()
 
     async def __aiter__(self):
         return self
@@ -33,22 +37,31 @@ class Song:
         else:
             raise StopAsyncIteration
 
+    def open_file(self):
+        self._open_file = open('{}.csv'.format(self.difficulty), 'r')
+        self._open_file.readline()
+
+    def close_file(self):
+        self._open_file.close()
+
+    def next(self):
+        beat = self._open_file.readline()
+        ts, notebytes = beat.strip('\n').split(',')
+        ts = float(ts)*1000
+        notebytes = [i for i, n in enumerate(list(notebytes)) if n is not '0']
+        if beat:
+            return ts, notebytes
+        else:
+            raise NotImplemented
+
     async def get_beat(self):
-        beat = self.open_file.readline()
+        beat = self._open_file.readline()
         return beat
 
-    async def get_beat_old(self):
-        if self.index >= len(self.notes):
-            return None
-        beat = self.notes[self.index]
-        self.index += 1
-        return beat
+    # async def get_beat_old(self):
+    #     if self.index >= len(self.notes):
+    #         return None
+    #     beat = self.notes[self.index]
+    #     self.index += 1
+    #     return beat
 
-
-class SongMenu:
-    def __init__(self, title='dr_chaos'):
-        self.title = title
-        self.song = Song(title)
-
-    def play(self):
-        mp3.play_track(song_list[self.title])

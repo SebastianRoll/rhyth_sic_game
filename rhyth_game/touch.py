@@ -1,5 +1,8 @@
 from machine import Pin, TouchPad
-import time
+try:
+    import utime as time
+except ImportError:
+    import time
 
 
 class Touch:
@@ -21,12 +24,12 @@ class Touch:
 
         ts = self.cur_time()
         for i, t in enumerate(self.touchpads):
-            if t.read() < threshold and (ts - ts_touches[i]) > debounce_ms:
+            if t.read() < threshold and (ts - ts_touches[i])*1000 > debounce_ms:
                 ts_touches[i] = ts
                 is_touched[i] = 1
             else:
                 pass
                 # istouch[i] = 0
         # return indices that are 1
-        return [i for i,v in is_touched if v]
+        return [i for i,v in enumerate(is_touched) if v]
 

@@ -46,6 +46,9 @@ class Fire:
             print(struct.unpack('>30B', np))
             # yield np
 
+    def tick(self):
+        self.fire_once()
+
     def fire_once(self):
         num_leds = self.num_leds
         heat = self.heat
