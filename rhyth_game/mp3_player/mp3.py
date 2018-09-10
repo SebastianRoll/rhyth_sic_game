@@ -1,7 +1,7 @@
-from time import sleep
+from utime import sleep_ms
 from machine import UART
 #uart=UART(0,9600)
-uart = UART(2, baudrate=9600, rx=25, tx=32, timeout=10)
+uart = UART(2, baudrate=9600, rx=32, tx=25, timeout=10)
 import yx5300 as cmd
 
 
@@ -21,7 +21,7 @@ def initialize():
 	if not initialized:
 		set_volume(volume_level)
 		initialized=True
-		sleep(0.5)
+		#sleep_ms(0.5)
 
 def next():
 	initialize()		
@@ -47,9 +47,10 @@ def play_track(track_id):
 	initialize()
 	uart.write(cmd.play_track(track_id))
 
-def play():
+def play(delay_ms=100):
 	initialize()
-	play_track(1);
+	sleep_ms(delay_ms)
+	play_track(1)
 	
 def pause():
 	uart.write(cmd.pause())

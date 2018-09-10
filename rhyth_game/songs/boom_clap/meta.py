@@ -1,0 +1,2 @@
+meta = {"sm_fp": "/home/sebastian/Music/StepMania/GOOD/packs/1 o' KLOC/Boom Clap Aeroplane remix/simfile.sm",
+        "bpms": [[0.0, 116.0]], "music_fp": "/home/sebastian/Music/StepMania/GOOD/packs/1 o' KLOC/Boom Clap Aeroplane remix/Boom Clam (Aeroplane remix).ogg"}

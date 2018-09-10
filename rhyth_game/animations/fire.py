@@ -4,17 +4,17 @@ try:
     import ustruct as struct
 except ImportError:
     import struct
-try:
-    import uasyncio as asyncio
-except ImportError:
-    import asyncio
+# try:
+#     import uasyncio as asyncio
+# except ImportError:
+#     import asyncio
 
 
-async def sleep_ms(duration):
-    try:
-        await asyncio.sleep_ms(duration)
-    except AttributeError:
-        await asyncio.sleep(duration/1000)
+# async def sleep_ms(duration):
+#     try:
+#         await asyncio.sleep_ms(duration)
+#     except AttributeError:
+#         await asyncio.sleep(duration/1000)
 
 
 class Fire:
@@ -25,26 +25,25 @@ class Fire:
         self.num_leds = num_leds
         self.heat = bytearray(num_leds)
 
-    def __await__(self):
-        print('__await__ called')
-        yield from asyncio.sleep(0)
-        self.fire_once()  # Other coros get scheduled here
-        np = self.get_color_array()
-        ar_ints = struct.unpack('>{}B'.format(self.num_leds*3), np)
-        ar_leds = [ar_ints[r:r+3] for r in range(0, len(ar_ints),3)]
-        print(ar_leds)
-        return np
+    # def __await__(self):
+    #     print('__await__ called')
+    #     yield from asyncio.sleep(0)
+    #     self.fire_once()  # Other coros get scheduled here
+    #     np = self.get_color_array()
+    #     ar_ints = struct.unpack('>{}B'.format(self.num_leds*3), np)
+    #     ar_leds = [ar_ints[r:r+3] for r in range(0, len(ar_ints),3)]
+    #     print(ar_leds)
+    #     return np
+    #
+    # __iter__ = __await__  # See note below
 
-    __iter__ = __await__  # See note below
-
-    async def start(self):
-        np = self.np
-        speed_delay = self.speed_delay
-        while True:
-            self.fire_once(np)
-            await sleep_ms(speed_delay)
-            print(struct.unpack('>30B', np))
-            # yield np
+    # async def start(self):
+    #     np = self.np
+    #     speed_delay = self.speed_delay
+    #     while True:
+    #         self.fire_once(np)
+    #         await sleep_ms(speed_delay)
+    #         print(struct.unpack('>30B', np))
 
     def tick(self):
         self.fire_once()
@@ -71,16 +70,16 @@ class Fire:
             y = random.randint(0, 7)
             heat[y] = min(255, heat[y] + random.randint(160, 255))
 
-    def get_color_array(self):
+    def get_color_array(self, strength=0.05):
         # Step 4.  Convert heat to LED colors
         num_leds = self.num_leds
         np = bytearray(num_leds*3)
         heat = self.heat
         for j in range(num_leds):
             color =self.heat_to_color(heat[j])
-            np[j * 3] = color[0]
-            np[j * 3 + 1] = color[1]
-            np[j * 3 + 2] = color[2]
+            np[j * 3] = int(color[0]*strength)
+            np[j * 3 + 1] = int(color[1]*strength)
+            np[j * 3 + 2] = int(color[2]*strength)
 
         return np
 

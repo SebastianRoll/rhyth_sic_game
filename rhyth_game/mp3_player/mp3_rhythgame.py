@@ -1,4 +1,4 @@
-import yx5300 as cmd
+from mp3_player import yx5300 as cmd
 from machine import UART
 
 

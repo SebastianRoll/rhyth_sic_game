@@ -3,14 +3,14 @@ try:
     import utime as time
 except ImportError:
     import time
-
+from utils import timed_function
 
 class Touch:
     def __init__(self, touch_pins, threshold=400):
         self.touchpads = [TouchPad(Pin(pin)) for pin in touch_pins]
         self.threshold = threshold
-        self.cur_time = time.time
-        self.debounce_ms = 50
+        self.cur_time = time.ticks_ms
+        self.debounce_ms = 150
 
         cur_time = self.cur_time()
         self.ts_touches = [cur_time] * len(touch_pins)
@@ -24,7 +24,7 @@ class Touch:
 
         ts = self.cur_time()
         for i, t in enumerate(self.touchpads):
-            if t.read() < threshold and (ts - ts_touches[i])*1000 > debounce_ms:
+            if t.read() < threshold and (ts - ts_touches[i]) > debounce_ms:
                 ts_touches[i] = ts
                 is_touched[i] = 1
             else:

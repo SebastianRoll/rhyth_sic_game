@@ -1,10 +1,5 @@
 import utime
 import machine
-try:
-    import uasyncio as asyncio
-except ImportError:
-    import asyncio
-
 
 def timed_function(f, *args, **kwargs):
     myname = str(f).split(' ')[1]
@@ -19,10 +14,13 @@ def timed_function(f, *args, **kwargs):
 
 def reset():
     machine.reset()
-
-
-async def sleep_ms(duration):
-    try:
-        await asyncio.sleep_ms(duration)
-    except AttributeError:
-        await asyncio.sleep(duration/1000)
+#
+# try:
+#     import uasyncio as asyncio
+# except ImportError:
+#     import asyncio
+# async def sleep_ms(duration):
+#     try:
+#         await asyncio.sleep_ms(duration)
+#     except AttributeError:
+#         await asyncio.sleep(duration/1000)
