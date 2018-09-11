@@ -22,8 +22,13 @@ def play(delay_ms=100):
 
 
 # from animations.fire import Fire
+class LastBeatSent(Exception):
+    pass
+
+
 class SongFinished(Exception):
     pass
+
 
 class NeoPixel(Neopixel):
     def set_buffer(self, buf, brightness=255):
@@ -98,7 +103,7 @@ class Game:
                 if self.debug:
                     print(beat)
                 if beat is None:
-                    raise SongFinished("Song finished")
+                    raise LastBeatSent("Song finished")
                 ts, notes = beat
                 # print(ts, notes)
                 for note in notes:
@@ -236,7 +241,7 @@ class RhythGame:
                     self.game.purge_stale_beats()
                     try:
                         self.game.fill_beat_buffer()
-                    except SongFinished:
+                    except LastBeatSent:
                         last_active_ts = self.game.beat_last_ts
                     if last_active_ts > 0 and self.game.time_passed() > self.game.beat_last_ts:
                         self.game.song.close_file()

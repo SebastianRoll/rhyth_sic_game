@@ -1,9 +1,19 @@
 import pandas as pd
 import struct
+import importlib
+import json
+import os
 
-def process_track():
-    from boom_clap.meta_with_charts import meta as dr_chaos
-    for chart in dr_chaos['charts']:
+
+def process_track(path):
+    print(path)
+    json_files = [filename for filename in os.listdir(path) if filename.endswith('.json')]
+    if len(json_files) != 1:
+        raise Exception("Singular json file required! found", len(json_files))
+    meta = json.loads(open(f'{path}/{json_files[0]}'))
+    meta = meta.meta
+    # from boom_clap.meta_with_charts import meta as dr_chaos
+    for chart in meta['charts']:
         df = pd.DataFrame(chart['notes'], columns=['time', 'note'])
         df['time'] = df['time'].apply(lambda v: struct.pack('>f', v))
         df['note'] = df['note'].apply(lambda v: str.encode(v))
@@ -15,7 +25,6 @@ def process_track():
         # df.to_csv('{}.csv'.format(chart['difficulty_coarse']), float_format='%.3f')
 
 
-
 def read_all(filepath):
     with open(filepath, 'rb') as f:
         beat = f.read()
@@ -24,7 +33,8 @@ def read_all(filepath):
         gen = struct.iter_unpack('>f4c', beat)
         for (ts, *notebytes) in gen:
             print(ts, notebytes)
-read_all('Challenge.b')
+
+
 def read_chunks(filepath):
     with open(filepath, 'rb') as f:
         while True:
@@ -35,3 +45,10 @@ def read_chunks(filepath):
             print(len(beat))
             (ts, *notebytes) = struct.unpack('>f4c', beat)
             print(ts, notebytes)
+
+if __name__ == "__main__":
+    import sys
+    path = sys.argv[1]
+    process_track(path)
+    # import fire
+    # fire.Fire(process_track)

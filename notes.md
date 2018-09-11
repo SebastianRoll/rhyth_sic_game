@@ -71,6 +71,10 @@ G hvit hvit
 16 blå blå
 18 brun grå
 
+# Convert song
+`python smdataset.py "/home/sebastian/Music/StepMania/GOOD/packs/1 o' KLOC/Boom Clap Aeroplane remix" res`
+
+
 
 
 # TODO
