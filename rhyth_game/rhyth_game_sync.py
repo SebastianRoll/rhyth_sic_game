@@ -3,7 +3,7 @@ try:
     import utime as time
 except ImportError:
     import time
-# from utils import timed_function
+from utils import timed_function
 import music
 # from songs import song_list
 song_list = {
@@ -14,7 +14,7 @@ from machine import Neopixel
 #import mp3
 
 uart = UART(2, baudrate=9600, rx=32, tx=25, timeout=10)
-import yx5300 as cmd
+import mp3_player.yx5300 as cmd
 uart.write(cmd.set_volume(15))
 def play(delay_ms=100):
     uart.write(cmd.play_track(1))
@@ -26,7 +26,7 @@ class SongFinished(Exception):
     pass
 
 class NeoPixel(Neopixel):
-    def set_buffer(self, buf):
+    def set_buffer(self, buf, brightness=255):
         # ar_ints = ustruct.unpack('>{}B'.format(34*4 * 3), buf)
         # ar_leds = [ar_ints[r:r + 3] for r in range(0, len(ar_ints), 3)]
         # print(ar_leds)
@@ -34,6 +34,7 @@ class NeoPixel(Neopixel):
             rgb_buf = buf[led_pos*3:led_pos*3+3]
             rgb_int = int.from_bytes(rgb_buf, 'big')
             self.set(led_pos+1, rgb_int, update=False)
+        self.brightness(brightness, update=False)
         self.show()
 
 
@@ -62,7 +63,8 @@ class Points:
 
 
 class Game:
-    def __init__(self, song_title, difficulty='easy'):
+    def __init__(self, song_title, difficulty='easy', debug=False):
+        self.debug = debug
         self.song = music.Song(song_title, difficulty=difficulty)
         self.points = Points()
         # self.mp3 = Mp3()
@@ -78,7 +80,7 @@ class Game:
 
         # Beats buffer
         self.beat_last_ts = 0
-        self.beat_buffer_padding_ms = 500
+        self.beat_buffer_padding_ms = 1000
 
     def time_passed(self):
         return self.time() - self.ts_start
@@ -93,6 +95,8 @@ class Game:
             # print(abc, beat_buffer_ms, time_expired + beat_buffer_ms)
             if self.beat_last_ts <= time_expired + beat_buffer_ms:
                 beat = song.next()
+                if self.debug:
+                    print(beat)
                 if beat is None:
                     raise SongFinished("Song finished")
                 ts, notes = beat
@@ -153,7 +157,9 @@ class Game:
 
 
 class RhythGame:
-    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None):
+    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None, brightness=255, debug=False, switch_led=False):
+        self.debug = debug
+        self.brightness = brightness
         self.touch_driver = touch_driver
         self.game = None
         # LED memory view - Outer
@@ -182,13 +188,21 @@ class RhythGame:
 
         # LED memory view - Notes
         self.notes_led = {}
+
+
         # ws2812
         for i in range(4):
-            self.notes_led[i] = self.ws2812_mv[i*led_count:(i+1)*led_count]
+            if switch_led:
+                self.notes_led[i] = self.ws2812_mv[i*led_count:(i+1)*led_count]
+            else:
+                self.notes_led[i+4] = self.ws2812_mv[i*led_count:(i+1)*led_count]
 
         # ws2813
         for i in range(4):
-            self.notes_led[i+4] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
+            if switch_led:
+                self.notes_led[i+4] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
+            else:
+                self.notes_led[i] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
 
         # self.ring_led = self.ws2812_mv[-12:]
 
@@ -203,11 +217,8 @@ class RhythGame:
         # self.notes_anim[1] = fire
         # self.notes_anim[4] = fire
 
-    def load_song(self, title='dr_chaos'):
-        self.game = Game(title)
-
     def play_song(self, title='dr_chaos', delay_ms=500, difficulty='easy'):
-        self.game = Game(title, difficulty=difficulty)
+        self.game = Game(title, difficulty=difficulty, debug=self.debug)
         touch_driver = self.touch_driver
         self.game.song.open_file()
         o = 0
@@ -221,7 +232,7 @@ class RhythGame:
                 started = True
             try:
                 # print('time expired:', self.game.time_passed(), o)
-                if o % 2 == 0:
+                if o % 10 == 0:
                     self.game.purge_stale_beats()
                     try:
                         self.game.fill_beat_buffer()
@@ -250,21 +261,26 @@ class RhythGame:
                             mv[-3] = 0xFF
                             mv[-2] = 0x00
                             mv[-1] = 0x00
-                self.ws2813_np.set_buffer(self.ws2813)
-                self.ws2812_np.set_buffer(self.ws2812)
+                # reverse leds
+                self.reverse_leds()
+
+                self.ws2813_np.set_buffer(self.ws2813, brightness=self.brightness)
+                self.ws2812_np.set_buffer(self.ws2812, brightness=self.brightness)
                 # self.ws2813_np.buf = self.ws2813
                 # self.ws2813_np.write()
                 # self.outer_np.buf = self.outer
                 # self.outer_np.write()
                 o += 1
-            except NotImplemented:
-                self.game.song.close_file()
-                break
             except Exception as e:
                 print("You stuck", self.game.points.score)
                 print(e)
+                self.game.song.close_file()
                 raise
 
+    def reverse_leds(self):
+        for note, mv in self.notes_led.items():
+            if note % 2 is 1:
+                mv[:] = bytearray(reversed(mv))
 
     def get_beat_positions(self, note_id, time_passed):
         """
@@ -338,3 +354,13 @@ class RhythGame:
     def tick_animation(self):
         anims = set(list(self.notes_anim.values()) + list(self.outer_anim.values()))
         [a.tick() for a in anims if a is not None]
+
+    def clean_up(self):
+        print("cleaning up..")
+        self.ws2813_np.clear()
+        self.ws2812_np.clear()
+        self.outer_np.clear()
+        time.sleep_ms(500)
+        self.ws2813_np.deinit()
+        self.ws2812_np.deinit()
+        self.outer_np.deinit()

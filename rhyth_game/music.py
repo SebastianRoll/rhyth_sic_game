@@ -60,10 +60,7 @@ class Song:
         ts = ts*1000
         notebytes = [chr(n) for n in notebytes]
         notebytes = [i for i, n in enumerate(list(notebytes)) if n != '0']
-        if beat:
-            return ts, notebytes
-        else:
-            raise NotImplemented
+        return ts, notebytes
 
     async def get_beat(self):
         beat = self._open_file.readline()
