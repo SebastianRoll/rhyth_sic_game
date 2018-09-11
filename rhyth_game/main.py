@@ -20,7 +20,11 @@ pin_ws2813 = 22
 pin_outer = 5
 
 # from machine import Neopixel, Pin
-# np = Neopixel(Pin(pin_outer), 34*4)
+# np = Neopixel(Pin(26), 34*4)
+# ((T1H, T1L), (T0H, T0L), Treset) = [(580, 220), (220, 580), 280000]  # WORKS PERFECTLY FOR WS2813!
+# np.timings([(T1H, T1L), (T0H, T0L), Treset])
+# np.set(0, 0xff0000, num=34*4)
+
 
 touch_pins = [15, 33, 4, 13, 27, 12, 0, 2]
 # r.notes_anim[1] = None
@@ -42,7 +46,7 @@ class ControllerDisplay:
 class Menu:
     def __init__(self):
         t = Touch(touch_pins, threshold=150)
-        self.contr_display = ControllerDisplay()
+        # self.contr_display = ControllerDisplay()
         self.r = RhythGame(pin_ws2812, pin_ws2813, pin_outer, touch_driver=t, brightness=1, debug=True, switch_led=False)
         self.r.play_song(delay_ms=400, title='boom_clap', difficulty='Challenge')
 
