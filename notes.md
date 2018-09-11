@@ -55,3 +55,37 @@ total = 7040 + 6720 + 50 = 13810 us = 13.81 ms -> 72.4 Hz
 
 2.5 ms for 68 rgb leds
 9.5 ms for 220 grbw leds
+
+
+# DEMO
+
+# Mapping scoreboard (esp32 to scoreboard)
+
+14 lilla lilla
+5v grå rød
+G hvit hvit
+5 grønn hvit
+23 gul(uten tape) grønn
+26 gul(med tape) svart
+17 grønn lilla
+16 blå blå
+18 brun grå
+
+
+
+# TODO
+
+Scoreboard
+
+2 led matrix displays
+Player select
+
+glue broken pad
+
+TEST SYSTEM
+
+paint leds white
+
+## Software
+
+lifebar

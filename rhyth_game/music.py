@@ -2,7 +2,8 @@
 # from songs.dr_chaos.meta import dr_chaos
 from songs.boom_clap.meta import meta as dr_chaos
 from songs import song_list
-import os
+# import os
+# from utils import timed_function
 
 class Song:
     def __init__(self, title, difficulty='medium'):
@@ -46,6 +47,7 @@ class Song:
     def close_file(self):
         self._open_file.close()
 
+    # @timed_function
     def next(self):
         beat = self._open_file.readline()
         # print(beat)

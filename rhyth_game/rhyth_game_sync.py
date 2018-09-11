@@ -3,7 +3,7 @@ try:
     import utime as time
 except ImportError:
     import time
-
+# from utils import timed_function
 import music
 # from songs import song_list
 song_list = {
@@ -21,7 +21,7 @@ def play(delay_ms=100):
     time.sleep_ms(delay_ms)
 
 
-from animations.fire import Fire
+# from animations.fire import Fire
 class SongFinished(Exception):
     pass
 
@@ -74,7 +74,7 @@ class Game:
         self.time = time.ticks_ms
         self.ts_start = self.time()
 
-        self.time_window_max = 150
+        self.time_window_max = 250
 
         # Beats buffer
         self.beat_last_ts = 0
@@ -83,6 +83,7 @@ class Game:
     def time_passed(self):
         return self.time() - self.ts_start
 
+    # @timed_function
     def fill_beat_buffer(self):
         time_expired = self.time_passed()
         song = self.song
@@ -146,17 +147,18 @@ class Game:
             self.points.miss()
         return hit
 
+    # @timed_function
     def add_beat(self, note, ts):
         self.beat_buffer[note].append(ts)
 
 
 class RhythGame:
-    def __init__(self, touch_driver=None):
+    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None):
         self.touch_driver = touch_driver
         self.game = None
         # LED memory view - Outer
         self.outer = bytearray(220*4) #, "ascii")
-        # self.outer_np = NeoPixel(Pin(16), 220, Neopixel.TYPE_RGBW)
+        self.outer_np = NeoPixel(Pin(pin_outer), 220, Neopixel.TYPE_RGBW)
         self.outer_mv = memoryview(self.outer)
         self.outer_leds = {
             'top': self.outer_mv[:110*3],
@@ -167,24 +169,26 @@ class RhythGame:
         led_count = 34*3
         self.led_count = led_count
         self.ws2812 = bytearray(4*led_count)
-        # self.ws2812_np = NeoPixel(Pin(17), 34*4)
-        # self.ws2812_np.clear()
+        self.ws2812_np = NeoPixel(Pin(pin_ws2812), 34*4)
+        self.ws2812_np.clear()
         self.ws2812_mv = memoryview(self.ws2812)
 
         self.ws2813 = bytearray(4*led_count)
-        self.ws2813_np = NeoPixel(Pin(5), 34*4) #5
+        self.ws2813_np = NeoPixel(Pin(pin_ws2813), 34*4) #5
+        ((T1H, T1L), (T0H, T0L), Treset) = [(580, 220), (220, 580), 280000]  # WORKS PERFECTLY FOR WS2813!
+        self.ws2813_np.timings([(T1H, T1L), (T0H, T0L), Treset])
         self.ws2813_np.clear()
         self.ws2813_mv = memoryview(self.ws2813)
 
         # LED memory view - Notes
         self.notes_led = {}
-        # ws2813
-        for i in range(4):
-            self.notes_led[i] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
-
         # ws2812
         for i in range(4):
-            self.notes_led[i+4] = self.ws2812_mv[i*led_count:(i+1)*led_count]
+            self.notes_led[i] = self.ws2812_mv[i*led_count:(i+1)*led_count]
+
+        # ws2813
+        for i in range(4):
+            self.notes_led[i+4] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
 
         # self.ring_led = self.ws2812_mv[-12:]
 
@@ -195,8 +199,8 @@ class RhythGame:
             'bot': None
         }
 
-        fire = Fire(34)
-        self.notes_anim[1] = fire
+        # fire = Fire(34)
+        # self.notes_anim[1] = fire
         # self.notes_anim[4] = fire
 
     def load_song(self, title='dr_chaos'):
@@ -247,7 +251,7 @@ class RhythGame:
                             mv[-2] = 0x00
                             mv[-1] = 0x00
                 self.ws2813_np.set_buffer(self.ws2813)
-                # self.ws2812_np.set_buffer(self.ws2812)
+                self.ws2812_np.set_buffer(self.ws2812)
                 # self.ws2813_np.buf = self.ws2813
                 # self.ws2813_np.write()
                 # self.outer_np.buf = self.outer
