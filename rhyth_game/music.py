@@ -3,7 +3,8 @@
 from songs.boom_clap.meta import meta as dr_chaos
 from songs import song_list
 # import os
-# from utils import timed_function
+from utils import timed_function
+import ustruct
 
 class Song:
     def __init__(self, title, difficulty='medium'):
@@ -38,24 +39,27 @@ class Song:
             raise StopAsyncIteration
 
     def open_file(self):
-        path = 'songs/' + self.title +'/{}.csv'.format(self.difficulty)
-        # path = '/'.join('songs', self.title, '{}.csv'.format(self.difficulty))
+        path = 'songs/' + self.title +'/{}.b'.format(self.difficulty)
         print(path)
-        self._open_file = open(path, 'r')
-        self._open_file.readline()
+        self._open_file = open(path, 'rb')
 
     def close_file(self):
         self._open_file.close()
 
-    # @timed_function
+    def read_beat(self):
+        return self._open_file.read(8)
+
+    def readline(self):
+        return self._open_file.readline()
+
     def next(self):
-        beat = self._open_file.readline()
-        # print(beat)
-        if beat is "":
+        beat = self.read_beat()
+        if not beat:
             return None
-        ts, notebytes = beat.strip('\n').split(',')
-        ts = float(ts)*1000
-        notebytes = [i for i, n in enumerate(list(notebytes)) if n is not '0']
+        (ts, *notebytes)= ustruct.unpack('>f4B', beat)
+        ts = ts*1000
+        notebytes = [chr(n) for n in notebytes]
+        notebytes = [i for i, n in enumerate(list(notebytes)) if n != '0']
         if beat:
             return ts, notebytes
         else:
@@ -64,11 +68,3 @@ class Song:
     async def get_beat(self):
         beat = self._open_file.readline()
         return beat
-
-    # async def get_beat_old(self):
-    #     if self.index >= len(self.notes):
-    #         return None
-    #     beat = self.notes[self.index]
-    #     self.index += 1
-    #     return beat
-

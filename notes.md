@@ -88,4 +88,12 @@ paint leds white
 
 ## Software
 
-lifebar
+- main
+  - select song
+- mp3
+  - play_track(10)
+- performance
+  - song read
+- Scoreboard class
+  - lifebar
+- songs
