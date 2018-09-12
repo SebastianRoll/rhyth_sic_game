@@ -20,10 +20,12 @@ pin_ws2813 = 22
 pin_outer = 5
 
 # from machine import Neopixel, Pin
-# np = Neopixel(Pin(26), 34*4)
-# ((T1H, T1L), (T0H, T0L), Treset) = [(580, 220), (220, 580), 280000]  # WORKS PERFECTLY FOR WS2813!
-# np.timings([(T1H, T1L), (T0H, T0L), Treset])
+# np = Neopixel(Pin(pin_ws2813), 34*4)
+# (T1H, T1L), (T0H, T0L), Treset = (580, 220), (220, 580), 280000  # WORKS PERFECTLY FOR WS2813!
+# np.timings(((580, 220), (220, 580), 280000))
 # np.set(0, 0xff0000, num=34*4)
+# np2 = Neopixel(Pin(pin_ws2812), 34*4)
+# np2.set(0, 0x00bb00, num=34*4)
 
 
 touch_pins = [15, 33, 4, 13, 27, 12, 0, 2]
@@ -45,10 +47,24 @@ class ControllerDisplay:
 
 class Menu:
     def __init__(self):
+
+        self.delays = {
+            'Bad Apple': 300,
+
+        }
+
+        self.song_list = {
+            'Caramelldansen (Speedycake Remix)': 1,
+            'Bad Apple': 2,
+            'Elemental Creati': 3,
+            'I know You know': 4,
+            'boom_clap': 5,
+        }
         t = Touch(touch_pins, threshold=150)
         # self.contr_display = ControllerDisplay()
-        self.r = RhythGame(pin_ws2812, pin_ws2813, pin_outer, touch_driver=t, brightness=1, debug=True, switch_led=False)
-        self.r.play_song(delay_ms=400, title='boom_clap', difficulty='Challenge')
+        self.r = RhythGame(pin_ws2812, pin_ws2813, pin_outer, touch_driver=t, brightness=255, song_list=self.song_list)
+        self.play(song='Bad Apple', difficulty='Medium', delay_ms=150)
+        # self.play(song='Caramelldansen (Speedycake Remix)', difficulty='Medium')
 
     def menu(self):
         r = self.r
@@ -60,14 +76,18 @@ class Menu:
             difficulties = os.listdir('songs/{}'.format(song))
             print('SELECT DIFFICULTY')
             difficulty = self.select_option(difficulties)
-            try:
-                r.play_song(delay_ms=400, title=song, difficulty=difficulty)
-            except SongFinished:
-                print("SCORE", r.game.points.score)
-                continue
-            except Exception:
-                r.clean_up()
-                raise
+            self.play(song, difficulty)
+
+    def play(self, song, difficulty, delay_ms=300):
+        r = self.r
+        try:
+            r.play_song(delay_ms=delay_ms, title=song, difficulty=difficulty)
+        except SongFinished:
+            print("SCORE", r.game.points.score)
+            return
+        except Exception:
+            r.clean_up()
+            raise
 
     def select_option(self, options: list):
         next = self.contr_display.button_red_1.value
@@ -85,9 +105,10 @@ class Menu:
             print(options[cur_idx])
             time.sleep_ms(50)
 
+menu = Menu()
 
-def main():
-    Menu()
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     Menu()
+#
+# if __name__ == "__main__":
+#     main()

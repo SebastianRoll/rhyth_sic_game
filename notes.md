@@ -101,3 +101,8 @@ paint leds white
 - Scoreboard class
   - lifebar
 - songs
+
+## Debugging
+
+- one note led wire (ws2812, V++) broke apart at solder joint
+- brightness=1 caused yellow and pink to not show at all

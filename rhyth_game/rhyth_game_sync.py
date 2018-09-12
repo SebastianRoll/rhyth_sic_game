@@ -6,9 +6,7 @@ except ImportError:
 from utils import timed_function
 import music
 # from songs import song_list
-song_list = {
-    'dr_chaos': 1,
-}
+
 from machine import Neopixel
 #from mp3_player.mp3_rhythgame import Mp3
 #import mp3
@@ -16,9 +14,13 @@ from machine import Neopixel
 uart = UART(2, baudrate=9600, rx=32, tx=25, timeout=10)
 import mp3_player.yx5300 as cmd
 uart.write(cmd.set_volume(15))
-def play(delay_ms=100):
-    uart.write(cmd.play_track(1))
+def play(track, delay_ms=100):
+    uart.write(cmd.play_track(track))
     time.sleep_ms(delay_ms)
+
+
+def mp3_reset():
+    uart.write(cmd.reset_module())
 
 
 # from animations.fire import Fire
@@ -162,7 +164,8 @@ class Game:
 
 
 class RhythGame:
-    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None, brightness=255, debug=False, switch_led=False):
+    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None, brightness=255, debug=False, song_list=None):
+        self.song_list = song_list
         self.debug = debug
         self.brightness = brightness
         self.touch_driver = touch_driver
@@ -195,19 +198,15 @@ class RhythGame:
         self.notes_led = {}
 
 
+        r = range(4)
         # ws2812
-        for i in range(4):
-            if switch_led:
-                self.notes_led[i] = self.ws2812_mv[i*led_count:(i+1)*led_count]
-            else:
-                self.notes_led[i+4] = self.ws2812_mv[i*led_count:(i+1)*led_count]
+        for i in r:
+            self.notes_led[i] = self.ws2812_mv[i*led_count:(i+1)*led_count]
 
         # ws2813
-        for i in range(4):
-            if switch_led:
-                self.notes_led[i+4] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
-            else:
-                self.notes_led[i] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
+        r = range(4)
+        for i in r:
+            self.notes_led[i+4] = self.ws2813_mv[i * led_count:(i + 1) * led_count]
 
         # self.ring_led = self.ws2812_mv[-12:]
 
@@ -233,7 +232,7 @@ class RhythGame:
         self.game.ts_start = self.game.time()
         while True:
             if not started and self.game.time_passed() > delay_ms:
-                play()
+                play(self.song_list[title])
                 started = True
             try:
                 # print('time expired:', self.game.time_passed(), o)
@@ -245,10 +244,8 @@ class RhythGame:
                         last_active_ts = self.game.beat_last_ts
                     if last_active_ts > 0 and self.game.time_passed() > self.game.beat_last_ts:
                         self.game.song.close_file()
-                        self.ws2813_np.clear()
-                        time.sleep_ms(50)
-                        self.ws2813_np.deinit()
-                        print("You stuck!", self.game.points.score)
+                        self.clean_up()
+                        print("You stuck!", self.game.points.score, "hits:", self.game.points.hits)
                         break
                 self.tick_animation()
                 self.refresh_leds()
@@ -362,6 +359,7 @@ class RhythGame:
 
     def clean_up(self):
         print("cleaning up..")
+        mp3_reset()
         self.ws2813_np.clear()
         self.ws2812_np.clear()
         self.outer_np.clear()

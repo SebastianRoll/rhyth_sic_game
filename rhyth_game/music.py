@@ -14,7 +14,7 @@ class Song:
         # self.notes = self.song_dict['charts'][0]['notes']
         self._open_file = None
         self.difficulty = difficulty
-        self.beat_ms_before_hit = 750
+        self.beat_ms_before_hit = 1000
 
     def __enter__(self):
         path = 'songs/' + self.title +'/{}.csv'.format(self.difficulty)
