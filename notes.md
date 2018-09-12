@@ -102,7 +102,19 @@ paint leds white
   - lifebar
 - songs
 
+- choice between easy and medium
+- fix double-tap issue!
+- change beat offset
+- change timing start
 ## Debugging
 
 - one note led wire (ws2812, V++) broke apart at solder joint
 - brightness=1 caused yellow and pink to not show at all
+
+ISpindel - hygrometer
+
+
+## Performance
+Function set_buffer Time = 35.622ms
+Function cb Time = 32.337ms
+Function refresh_outer_leds Time =  0.817ms

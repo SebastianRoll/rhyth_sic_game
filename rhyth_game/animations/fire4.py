@@ -70,16 +70,17 @@ class Fire:
             y = random.randint(0, 7)
             heat[y] = min(255, heat[y] + random.randint(160, 255))
 
-    def get_color_array(self, strength=0.75):
+    def get_color_array(self, strength=0.05):
         # Step 4.  Convert heat to LED colors
         num_leds = self.num_leds
-        np = bytearray(num_leds*3)
+        np = bytearray(num_leds*4)
         heat = self.heat
         for j in range(num_leds):
             color =self.heat_to_color(heat[j])
-            np[j * 3] = int(color[0]*strength)
-            np[j * 3 + 1] = int(color[1]*strength)
-            np[j * 3 + 2] = int(color[2]*strength)
+            np[j * 4] = int(color[0]*strength)
+            np[j * 4 + 1] = int(color[1]*strength)
+            np[j * 4 + 2] = int(color[2]*strength)
+            np[j * 4 + 3] = 0
 
         return np
 

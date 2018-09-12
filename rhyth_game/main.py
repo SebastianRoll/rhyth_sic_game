@@ -28,7 +28,7 @@ pin_outer = 5
 # np2.set(0, 0x00bb00, num=34*4)
 
 
-touch_pins = [15, 33, 4, 13, 27, 12, 0, 2]
+touch_pins = [15, 33, 4, 13]#, 27, 12, 0, 2]
 # r.notes_anim[1] = None
 # r.notes_anim[0] = r.notes_anim[1]
 # r.notes_anim[2] = r.notes_anim[1]
@@ -59,11 +59,12 @@ class Menu:
             'Elemental Creati': 3,
             'I know You know': 4,
             'boom_clap': 5,
+            'Through the Fire and Flame': 6,
         }
         t = Touch(touch_pins, threshold=150)
         # self.contr_display = ControllerDisplay()
         self.r = RhythGame(pin_ws2812, pin_ws2813, pin_outer, touch_driver=t, brightness=255, song_list=self.song_list)
-        self.play(song='Bad Apple', difficulty='Medium', delay_ms=150)
+
         # self.play(song='Caramelldansen (Speedycake Remix)', difficulty='Medium')
 
     def menu(self):
@@ -105,7 +106,20 @@ class Menu:
             print(options[cur_idx])
             time.sleep_ms(50)
 
+playlist = {
+            # 'Caramelldansen (Speedycake Remix)': 'Easy',
+            # 'boom_clap':'Challenge',
+            # 'Elemental Creati':'Easy',
+            # 'I know You know':'Easy',
+            'Bad Apple':'Easy',
+            # 'Through the Fire and Flame': 'Easy',
+            }
+
 menu = Menu()
+while True:
+    for s, d in playlist.items():
+        menu.play(song=s, difficulty=d, delay_ms=250)
+        time.sleep_ms(15000)
 
 # def main():
 #     Menu()

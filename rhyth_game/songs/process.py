@@ -23,6 +23,10 @@ def process_track(path):
         if not os.path.exists(newdir):
             os.makedirs(newdir)
         for chart in meta['charts']:
+            print(chart['type'])
+            if chart['type'] == "dance-double":
+                print('skipping dance-double!')
+                continue
             df = pd.DataFrame(chart['notes'], columns=['time', 'note'])
             df['time_b'] = df['time'].apply(lambda v: struct.pack('>f', v))
             df['note_b'] = df['note'].apply(lambda v: str.encode(v))
@@ -30,8 +34,8 @@ def process_track(path):
             with open(os.path.join(newdir,'{}.b'.format(chart['difficulty_coarse'])), 'wb') as f:
                 f.writelines(list(df['out'].values))
 
-            df.set_index('time', inplace=True)
-            df.to_csv(os.path.join(newdir,'{}.csv'.format(chart['difficulty_coarse'])), float_format='%.3f')
+            # df.set_index('time', inplace=True)
+            # df.to_csv(os.path.join(newdir,'{}.csv'.format(chart['difficulty_coarse'])), float_format='%.3f')
 
 
 def read_all(filepath):
