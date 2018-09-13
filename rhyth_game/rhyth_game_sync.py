@@ -363,7 +363,6 @@ class RhythGame:
             # led - note positions
             time_passed = self.game.time_passed()
             positions = self.get_beat_positions(note_id, time_passed)
-            self.ws2812_np.set(p)
             # if len(positions) > 0:
             #     print("POS", note_id, positions, time_expired)
             for pos in positions:

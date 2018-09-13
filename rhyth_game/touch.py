@@ -3,7 +3,7 @@ try:
     import utime as time
 except ImportError:
     import time
-from utils import timed_function
+# from utils import timed_function
 
 class Touch:
     def __init__(self, touch_pins, threshold=400):

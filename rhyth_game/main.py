@@ -60,6 +60,8 @@ class Menu:
             'I know You know': 4,
             'boom_clap': 5,
             'Through the Fire and Flame': 6,
+            'Southern Country 2': 7,
+            'Eternal': 8,
         }
         t = Touch(touch_pins, threshold=150)
         # self.contr_display = ControllerDisplay()
@@ -112,6 +114,8 @@ playlist = {
             # 'Elemental Creati':'Easy',
             # 'I know You know':'Easy',
             'Bad Apple':'Easy',
+            # 'Southern Country 2':'Medium',
+            # 'Eternal': 'Hard'
             # 'Through the Fire and Flame': 'Easy',
             }
 
