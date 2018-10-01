@@ -1,5 +1,5 @@
 import random
-
+from utils import timed_function
 try:
     import ustruct as struct
 except ImportError:
@@ -24,6 +24,7 @@ class Fire:
         self.speed_delay = speed_delay
         self.num_leds = num_leds
         self.heat = bytearray(num_leds)
+        self.color_array = bytearray(num_leds*3)
 
     # def __await__(self):
     #     print('__await__ called')
@@ -47,8 +48,11 @@ class Fire:
 
     def tick(self):
         self.fire_once()
+        self.color_array = self.get_color_array()
 
+    @timed_function
     def fire_once(self):
+        # 3.3 ms for 34 leds
         num_leds = self.num_leds
         heat = self.heat
         # Step 1.  Cool down every cell a little
@@ -70,21 +74,25 @@ class Fire:
             y = random.randint(0, 7)
             heat[y] = min(255, heat[y] + random.randint(160, 255))
 
-    def get_color_array(self, strength=0.75):
+    @timed_function
+    def get_color_array(self, strength=0.3):
+        # 8 ms for 34 leds (35 ms when multipltying with strength
         # Step 4.  Convert heat to LED colors
         num_leds = self.num_leds
         np = bytearray(num_leds*3)
         heat = self.heat
-        for j in range(num_leds):
+        r = range(num_leds)
+        for j in r:
             color =self.heat_to_color(heat[j])
-            np[j * 3] = int(color[0]*strength)
-            np[j * 3 + 1] = int(color[1]*strength)
-            np[j * 3 + 2] = int(color[2]*strength)
+            np[j * 3] = color[0]//20#int(color[0]*strength)
+            np[j * 3 + 1] = color[1]//20#int(color[1]*strength)
+            np[j * 3 + 2] = color[2]//20#int(color[2]*strength)
 
         return np
 
     @staticmethod
     def heat_to_color(temperature):
+        # 0.6 ms for 34 leds
         # Scale 'heat' down from 0-255 to 0-191
         t192 = temperature*191//255
 
