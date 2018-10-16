@@ -17,7 +17,7 @@ def process_track(path):
     print(path)
     json_files = [filename for filename in os.listdir(path) if filename.endswith('.json')]
     for json_file in json_files:
-        meta = json.load(open(f'{path}/{json_file}'))
+        meta = json.load(open('{path}/{json_file}'.format(path=path, json_file=json_file)))
         # from boom_clap.meta_with_charts import meta as dr_chaos
         newdir = os.path.join(path,json_file.rstrip('.json'))
         if not os.path.exists(newdir):
