@@ -2,6 +2,9 @@
 
 # Project specific
 songs/
+svg/
+music/
+temp/
 
 ### Python template
 # Byte-compiled / optimized / DLL files
