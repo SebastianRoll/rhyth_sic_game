@@ -3,8 +3,6 @@ from rhyth_game_sync import RhythGame, SongFinished
 from touch import Touch
 import utime as time
 import gc
-import max7219
-from machine import Pin, SPI
 
 import pin_definitions as p
 
@@ -46,7 +44,7 @@ class Menu:
         }
 
         self.song_list = {
-            # 'Caramelldansen (Speedycake Remix)': 1,
+            'Caramelldansen (Speedycake Remix)': 1,
             'Bad Apple': 3,
             # 'Elemental Creati': 3,
             'I know You know': 2,
@@ -114,8 +112,8 @@ menu = Menu()
 # menu.r.notes_anim[6] = fire
 # menu.r.notes_anim[7] = fire
 playlist = {
-            'Through the Fire and Flame': 'Easy',
-            # 'Caramelldansen (Speedycake Remix)': 'Easy',
+            # 'Through the Fire and Flame': 'Easy',
+            'Caramelldansen (Speedycake Remix)': 'Easy',
             # 'boom_clap':'Challenge',
             # 'Elemental Creati':'Easy',
             # 'Salt N Peppa - Push It':'easy',
