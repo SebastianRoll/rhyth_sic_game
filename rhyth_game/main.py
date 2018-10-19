@@ -6,18 +6,7 @@ import gc
 import max7219
 from machine import Pin, SPI
 
-pin_mosi = 23
-pin_miso = 19
-pin_sck = 18
-pin_slave_select_red = 17
-pin_slave_select_green = 16
-pin_button_red_1 = 35
-pin_button_red_2 = 34
-pin_uart2_rx = 32
-pin_uart2_tx = 25
-pin_ws2812 = 26
-pin_ws2813 = 22
-pin_outer = 5
+import pin_definitions as p
 
 
 # spi = SPI(-1, baudrate=10000000, miso=Pin(pin_miso), mosi=Pin(pin_mosi), sck=Pin(pin_sck))
@@ -42,7 +31,6 @@ pin_outer = 5
 
 
 
-touch_pins = [15, 33, 4, 13]#, 27, 12, 0, 2]
 # r.notes_anim[1] = None
 # r.notes_anim[0] = r.notes_anim[1]
 # r.notes_anim[2] = r.notes_anim[1]
@@ -52,9 +40,9 @@ touch_pins = [15, 33, 4, 13]#, 27, 12, 0, 2]
 
 class ControllerDisplay:
     def __init__(self):
-        spi = SPI(1, baudrate=10000000, miso=Pin(pin_miso), mosi=Pin(pin_mosi), sck=Pin(pin_sck))
+        spi = SPI(1, baudrate=10000000, miso=Pin(p.pin_miso), mosi=Pin(p.pin_mosi), sck=Pin(p.pin_sck))
         # self.display_red = max7219.Matrix8x8(spi, Pin(pin_slave_select_red), 4)
-        self.display_green = max7219.Matrix8x8(spi, Pin(pin_slave_select_green), 4)
+        self.display_green = max7219.Matrix8x8(spi, Pin(p.pin_slave_select_green), 4)
         # self.button_red_1 = Pin(pin_button_red_1, Pin.PULL_UP)
         # self.button_red_2 = Pin(pin_button_red_2, Pin.PULL_UP)
     def display(self, text):
@@ -85,10 +73,10 @@ class Menu:
         }
         # cd = ControllerDisplay()
         cd = None
-        t = Touch(touch_pins, threshold=150)
+        t = Touch(p.touch_pins, threshold=150)
 
         # self.contr_display = ControllerDisplay()
-        self.r = RhythGame(pin_ws2812, pin_ws2813, pin_outer, touch_driver=t, brightness=255, song_list=self.song_list, cd=cd)
+        self.r = RhythGame(p.pin_ws2812, p.pin_ws2813, p.pin_outer, touch_driver=t, brightness=255, song_list=self.song_list, cd=cd)
 
         # self.play(song='Caramelldansen (Speedycake Remix)', difficulty='Medium')
 
