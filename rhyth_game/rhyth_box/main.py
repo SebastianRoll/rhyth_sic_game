@@ -9,14 +9,22 @@ class SelectionScreen:
     def __init__(self, rhythbox):
         self.box = rhythbox
         self.selector = rhythbox.encoder_left
+        self.confirm_cb = lambda x: self.box.button_left.value() == True
 
     def do_select(self):
+        track = self.select_track()
+        difficulty = self.select_difficulty(track)
+        self.emit(track, difficulty)
+
+    def select_track(self):
         tracks = os.listdir(self.DIR_TRACKS)
         print(tracks)
         cur_idx = self.selector.value
         self.show_track(tracks[cur_idx])
         while True:
             # utime.sleep_ms(100)
+            if self.confirm_cb():
+                return tracks[cur_idx]
             new_idx = self.selector.value
             if new_idx != cur_idx:
                 print("new", new_idx, new_idx % len(tracks))
@@ -32,7 +40,7 @@ class SelectionScreen:
                 continue
             print(tracks[cur_idx % len(tracks)])
             # self.show_track(tracks[cur_idx % len(tracks)])
-            # gc.mem_free()
+            gc.collect()
 
     def show_track(self, trackname):
         print("Loading", trackname)
@@ -40,6 +48,24 @@ class SelectionScreen:
         # self.box.tft.clear()
         print(track.bg_image)
         self.box.show_image(track.bg_image, trackname)
+
+    def select_difficulty(self, track):
+        options = ['easy', 'medium', 'hard']
+        cur_idx = 0
+        tft = self.box.tft
+        new_idx = 0
+        while True:
+            if self.confirm_cb():
+                return options[cur_idx % len(options)]
+            new_idx = self.selector.value
+            if new_idx !=  cur_idx:
+                cur_idx = new_idx
+                tft.textclear()
+                tft.text(tft.CENTER, 2, options[cur_idx % len(options)], tft.CYAN, transparent=True)
+
+    def emit(self, track, difficulty):
+        print("EMITTING ", track, difficulty)
+
 
 class Track:
     def __init__(self, dirpath, trackname):
@@ -58,12 +84,16 @@ class Track:
         return "{}/{}".format(self.path, self._bg_image)
 
 
-r = rhyth_box.RhythBox()
-s = SelectionScreen(r)
-s.do_select()
+# r = rhyth_box.RhythBox()
+# s = SelectionScreen(r)
+# s.do_select()
+#
+# from micropong import MicroPong
+# r.switch_matrix()
+# g = MicroPong(r.led_right, r.button_left, r.button_right)
+# g.play()
 
-
-
+#---------------------------
 # import rhyth_box
 # import os
 # import ujson

@@ -3,7 +3,6 @@
 https://github.com/Statoil/micropython/wiki/A-game-of-Pong
 """
 
-from machine import Pin
 
 # LED
 # MOSI = Pin(13)  # master out slave in
@@ -15,17 +14,16 @@ from machine import Pin
 # SCL = Pin(23)
 # i2c = I2C(sda=SDA, scl=SCL)
 # µPong
-import math
+from machine import Pin
 import time
 from random import randint
-from cmath import exp, pi
-import ustruct
-from machine import Pin, SPI, ADC, I2C
 
-import max7219
-from pin_definitions import *
 
 ### 8x8 MATRIX
+'''
+from pin_definitions import *
+from machine import Pin, SPI
+import max7219
 MISO = Pin(PIN_MISO)  # not in use -- master in slave out
 MOSI = Pin(PIN_MOSI)  # master out slave in
 SCK  = Pin(PIN_SCK)  # clock
@@ -36,52 +34,7 @@ display = max7219.Matrix8x8(spi, CS, 4)
 display.brightness(10)
 display.fill(0)
 display.show()
-
-def show_board(game):
-    display.fill(0)
-
-    display.pixel(0, game.left_pad-1, 1)
-    display.pixel(0, game.left_pad, 1)
-    display.pixel(0, game.left_pad+1, 1)
-
-    display.pixel(31, game.right_pad-1, 1)
-    display.pixel(31, game.right_pad, 1)
-    display.pixel(31, game.right_pad+1, 1)
-
-    ball = int(round(game.ball[0])), int(round(game.ball[1]))
-    display.pixel(ball[0], ball[1], 1)
-    display.show()
-
-def show_ball(game):
-    ball = int(round(game.ball[0])), int(round(game.ball[1]))
-    for i in range(10):
-        display.pixel(ball[0], ball[1], (i%2)==0)
-        display.show()
-        time.sleep(0.1)
-
-def show_score(game):
-    a,b = game.the_score
-    x_idx = 4
-    if max(a,b) > 9:
-        x_idx = 0
-    for i in range(5):
-        display.brightness(i)
-        display.fill(0)
-        display.show()
-        time.sleep(0.1)
-        display.text('{}:{}'.format(a,b), x_idx, 0, 1)
-        display.show()
-        time.sleep(0.2)
-    display.fill(0)
-    display.show()
-
-def countdown():
-    for i in range(10, -1, -1):
-        display.fill(0)
-        display.text('{}'.format(i), 10, 0, 1)
-        display.show()
-        time.sleep(0.2)
-### END 8x8 MATRIX
+'''
 
 
 
@@ -100,9 +53,9 @@ def countdown():
 ### END CAPACITATIVE
 
 class SnakePosition:
-    def __init__(self):
-        self.button_up = Pin(PIN_BUTTON_LEFT, Pin.IN, Pin.PULL_UP)
-        self.button_down= Pin(PIN_BUTTON_RIGHT, Pin.IN, Pin.PULL_UP)
+    def __init__(self, button_up, button_down):
+        self.button_up = button_up
+        self.button_down= button_down
         self.numval = 0
         self.debounce_ms = 20
         self.pos_debounce = 0
@@ -121,15 +74,29 @@ class SnakePosition:
         return self.position
 
 ### START GAME
-class Pong(object):
-    def __init__(self):
+class MicroPong:
+    def __init__(self, display, button_up, button_down):
+        """
+        Expects a MAX7219 led matrix display
+        :param display: MAX7219 led matrix display
+        """
+        self.display = display
+
         self.left_pad = 4
         self.right_pad = 4
         self.ball = [0,0]
         self.vector = [0,0]
         self.the_score = [0,0]
-        self.snakepos = SnakePosition()
+        self.snakepos = SnakePosition(button_up, button_down)
         self._start()
+
+    def play(self, win_score=10):
+        self.countdown()
+        self.show_board()
+        while max(self.the_score) < win_score:
+            self.update()
+            self.show_board()
+            time.sleep(0.05)
 
     def _start(self):
         self.ball = [16,4]
@@ -154,8 +121,8 @@ class Pong(object):
             goal += 1
             goal = goal//2
             self.the_score[1-goal] += 1
-            show_ball(self)
-            show_score(self)
+            self.show_ball()
+            self.show_score()
             self._start()
 
     def _edge_of_bat(self):
@@ -213,18 +180,61 @@ class Pong(object):
         self._score()
         return self.left_pad, self.right_pad, self.ball, self.vector
 
+
+    def show_board(self):
+        display = self.display
+        display.fill(0)
+
+        display.pixel(0, self.left_pad-1, 1)
+        display.pixel(0, self.left_pad, 1)
+        display.pixel(0, self.left_pad+1, 1)
+
+        display.pixel(31, self.right_pad-1, 1)
+        display.pixel(31, self.right_pad, 1)
+        display.pixel(31, self.right_pad+1, 1)
+
+        ball = int(round(self.ball[0])), int(round(self.ball[1]))
+        display.pixel(ball[0], ball[1], 1)
+        display.show()
+
+    def show_ball(self):
+        display = self.display
+
+        ball = int(round(self.ball[0])), int(round(self.ball[1]))
+        for i in range(10):
+            display.pixel(ball[0], ball[1], (i%2)==0)
+            display.show()
+            time.sleep(0.1)
+
+    def show_score(self):
+        display = self.display
+        a,b = self.the_score
+        x_idx = 4
+        if max(a,b) > 9:
+            x_idx = 0
+        for i in range(5):
+            display.brightness(i)
+            display.fill(0)
+            display.show()
+            time.sleep(0.1)
+            display.text('{}:{}'.format(a,b), x_idx, 0, 1)
+            display.show()
+            time.sleep(0.2)
+        display.fill(0)
+        display.show()
+
+    def countdown(self):
+        display = self.display
+        for i in range(10, -1, -1):
+            display.fill(0)
+            display.text('{}'.format(i), 10, 0, 1)
+            display.show()
+            time.sleep(0.2)
+
     def __repr__(self):
         return 'Pong({}\t{}\t{}\t{})'.format(self.left_pad, self.right_pad, self.ball, self.vector)
 
+if __name__ == "__main__":
+    game = MicroPong()
+    game.play()
 
-def play():
-    game = Pong()
-    while max(game.the_score) < 10:
-        game.update()
-        show_board(game)
-        time.sleep(0.05)
-
-countdown()
-show_board(Pong())
-time.sleep(0.5)
-play()

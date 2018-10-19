@@ -21,7 +21,7 @@ import time
 import max7219
 from encoder import Encoder
 
-from pin_definitions import *
+import pin_definitions as pd
 
 class TFT(display.TFT):
     def __enter__(self):
@@ -37,12 +37,12 @@ class RhythBox:
         self.tft = None
         self.spi = None
 
-        self.button_left = Pin(PIN_BUTTON_LEFT, Pin.IN, Pin.PULL_UP)
-        self.button_right = Pin(PIN_BUTTON_RIGHT, Pin.IN, Pin.PULL_UP,
+        self.button_left = Pin(pd.PIN_BUTTON_LEFT, Pin.IN, Pin.PULL_UP)
+        self.button_right = Pin(pd.PIN_BUTTON_RIGHT, Pin.IN, Pin.PULL_UP,
                                 handler=self.button_pressed, trigger=Pin.IRQ_FALLING)#, debounce=10000, acttime=5000)
 
-        self.encoder_left = Encoder(PIN_ENCODER_LEFT_SCK, PIN_ENCODER_LEFT_DT, min_val=0, clicks=2)
-        self.encoder_right = Encoder(PIN_ENCODER_RIGHT_SCK, PIN_ENCODER_RIGHT_DT, min_val=0, clicks=2)
+        self.encoder_left = Encoder(pd.PIN_ENCODER_LEFT_SCK, pd.PIN_ENCODER_LEFT_DT, min_val=0, clicks=2)
+        self.encoder_right = Encoder(pd.PIN_ENCODER_RIGHT_SCK, pd.PIN_ENCODER_RIGHT_DT, min_val=0, clicks=2)
 
 
         self.numval = 0
@@ -51,7 +51,6 @@ class RhythBox:
 
         self.switch_matrix()
         self.switch_tft()
-
 
     def button_pressed(self, pin):
         if time.ticks_ms() > self.butr_debounce and pin.value() == 0:
@@ -72,13 +71,17 @@ class RhythBox:
 
     def switch_tft(self):
         if self.spi:
+            self.led_right.fill(0)
+            self.led_right.show()
+            self.led_right.fill(0)
+            self.led_right.show()
             self.spi.deinit()
             self.spi = None
 
         if not self.tft:
             tft = display.TFT()
-            tft.init(tft.ILI9341, width=240, height=320, miso=PIN_MISO, mosi=PIN_MOSI, clk=PIN_SCK,
-                     cs=PIN_TFT_CS, dc=PIN_TFT_DC, rst_pin=PIN_TFT_RST, bgr=True)
+            tft.init(tft.ILI9341, width=240, height=320, miso=pd.PIN_MISO, mosi=pd.PIN_MOSI, clk=pd.PIN_SCK,
+                     cs=pd.PIN_TFT_CS, dc=pd.PIN_TFT_DC, rst_pin=pd.PIN_TFT_RST, bgr=True)
             tft.rect(0, 20, 100, 100, 0xFF0000, 0x00FF00)
             self.tft = tft
 
@@ -88,17 +91,15 @@ class RhythBox:
             self.tft = 0
 
         if not self.spi:
-            spi = SPI(spihost=1, baudrate=8000000, miso=Pin(PIN_MISO), mosi=Pin(PIN_MOSI), sck=Pin(PIN_SCK))
-            led_right = max7219.Matrix8x8(spi, Pin(PIN_8X8_1_CS), 4)
+            spi = SPI(spihost=1, baudrate=8000000, miso=Pin(pd.PIN_MISO), mosi=Pin(pd.PIN_MOSI), sck=Pin(pd.PIN_SCK))
+            led_right = max7219.Matrix8x8(spi, Pin(pd.PIN_8X8_1_CS), 4)
             led_right.brightness(2)
             led_right.fill(0)
-            led_right.text('right', 0, 0, 1)
             led_right.show()
 
-            led_left = max7219.Matrix8x8(spi, Pin(PIN_8X8_2_CS), 4)
+            led_left = max7219.Matrix8x8(spi, Pin(pd.PIN_8X8_2_CS), 4)
             led_left.brightness(2)
             led_left.fill(0)
-            led_left.text('left', 0, 0, 1)
             led_left.show()
 
             self.spi = spi
