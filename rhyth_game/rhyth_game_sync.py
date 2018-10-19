@@ -172,8 +172,7 @@ class Game:
 
 
 class RhythGame:
-    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None, brightness=255, cd=None, debug=False, song_list=None):
-        self.cd = cd # ControllerDisplay
+    def __init__(self, pin_ws2812, pin_ws2813, pin_outer, touch_driver=None, brightness=255, debug=False, song_list=None):
         self.song_list = song_list
         self.debug = debug
         self.brightness = brightness
@@ -240,7 +239,6 @@ class RhythGame:
 
     def play_song(self, title='dr_chaos', delay_ms=500, difficulty='easy'):
         game = Game(title, difficulty=difficulty, debug=self.debug)
-        cd = self.cd
         touch_driver = self.touch_driver
         game.song.open_file()
         self.game = game
@@ -258,8 +256,6 @@ class RhythGame:
             try:
                 # print('time expired:', self.game.time_passed(), o)
                 if o % 10 == 0:
-                    if cd:
-                        cd.display(game.points.score)
                     game.purge_stale_beats()
                     try:
                         game.fill_beat_buffer()

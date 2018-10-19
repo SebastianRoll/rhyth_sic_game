@@ -37,19 +37,6 @@ import pin_definitions as p
 # r.notes_anim[3] = r.notes_anim[1]
 
 
-
-class ControllerDisplay:
-    def __init__(self):
-        spi = SPI(1, baudrate=10000000, miso=Pin(p.pin_miso), mosi=Pin(p.pin_mosi), sck=Pin(p.pin_sck))
-        # self.display_red = max7219.Matrix8x8(spi, Pin(pin_slave_select_red), 4)
-        self.display_green = max7219.Matrix8x8(spi, Pin(p.pin_slave_select_green), 4)
-        # self.button_red_1 = Pin(pin_button_red_1, Pin.PULL_UP)
-        # self.button_red_2 = Pin(pin_button_red_2, Pin.PULL_UP)
-    def display(self, text):
-        self.display_green.fill(0)
-        self.display_green.text(str(text), 0,0,1)
-        self.display_green.show()
-
 class Menu:
     def __init__(self):
 
@@ -71,14 +58,10 @@ class Menu:
             # 'Salt N Peppa - Push It': 10,
 
         }
-        # cd = ControllerDisplay()
-        cd = None
         t = Touch(p.touch_pins, threshold=150)
 
-        # self.contr_display = ControllerDisplay()
-        self.r = RhythGame(p.pin_ws2812, p.pin_ws2813, p.pin_outer, touch_driver=t, brightness=255, song_list=self.song_list, cd=cd)
+        self.r = RhythGame(p.pin_ws2812, p.pin_ws2813, p.pin_outer, touch_driver=t, brightness=255, song_list=self.song_list)
 
-        # self.play(song='Caramelldansen (Speedycake Remix)', difficulty='Medium')
 
     def menu(self):
         r = self.r
