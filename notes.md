@@ -57,23 +57,8 @@ total = 7040 + 6720 + 50 = 13810 us = 13.81 ms -> 72.4 Hz
 9.5 ms for 220 grbw leds
 
 
-# DEMO
-
-# Mapping scoreboard (esp32 to scoreboard)
-
-14 lilla lilla
-5v grå rød
-G hvit hvit
-5 grønn hvit
-23 gul(uten tape) grønn
-26 gul(med tape) svart
-17 grønn lilla
-16 blå blå
-18 brun grå
-
 # Convert song
 `python smdataset.py "/home/sebastian/Music/StepMania/GOOD/packs/1 o' KLOC/Boom Clap Aeroplane remix" res`
-
 
 
 
@@ -118,3 +103,73 @@ ISpindel - hygrometer
 Function set_buffer Time = 35.622ms
 Function cb Time = 32.337ms
 Function refresh_outer_leds Time =  0.817ms
+
+
+## ESP32
+
+### Input only pins
+GPIOs 34 to 39 are GPIs – input only pins. These pins don’t have internal pull-ups or pull-down resistors. They can’t be used as outputs, so use these pins only as inputs:
+
+- GPIO 34
+- GPIO 35
+- GPIO 36
+- GPIO 37
+- GPIO 38
+- GPIO 39
+
+### SPI flash integrated on the ESP-WROOM-32
+
+GPIO 6 to GPIO 11 are exposed in some ESP32 development boards. However, these pins are connected to the integrated SPI flash on the ESP-WROOM-32 chip and are not recommended for other uses. So, don’t use these pins in your projects:
+
+- GPIO 6 (SCK/CLK)
+- GPIO 7 (SDO/SD0)
+- GPIO 8 (SDI/SD1)
+- GPIO 9 (SHD/SD2)
+- GPIO 10 (SWP/SD3)
+- GPIO 11 (CSC/CMD)
+
+### Capacitive touch GPIOs
+
+
+- T0 (GPIO 4)
+- T1 (GPIO 0)
+- T2 (GPIO 2)
+- T3 (GPIO 15)
+- T4 (GPIO 13)
+- T5 (GPIO 12)
+- T6 (GPIO 14)
+- T7 (GPIO 27)
+- T8 (GPIO 33)
+- T9 (GPIO 32)
+
+### Analog to Digital Converter (ADC)
+
+The ESP32 has 18 x 12 bits ADC input channels (while the ESP8266 only has 1x 10 bits ADC). These are the GPIOs that can be used as ADC and respective channels:
+
+- ADC1_CH0 (GPIO 36)
+- ADC1_CH1 (GPIO 37)
+- ADC1_CH2 (GPIO 38)
+- ADC1_CH3 (GPIO 39)
+- ADC1_CH4 (GPIO 32)
+- ADC1_CH5 (GPIO 33)
+- ADC1_CH6 (GPIO 34)
+- ADC1_CH7 (GPIO 35)
+- ADC2_CH0 (GPIO 4)
+- ADC2_CH1 (GPIO 0)
+- ADC2_CH2 (GPIO 2)
+- ADC2_CH3 (GPIO 15)
+- ADC2_CH4 (GPIO 13)
+- ADC2_CH5 (GPIO 12)
+- ADC2_CH6 (GPIO 14)
+- ADC2_CH7 (GPIO 27)
+- ADC2_CH8 (GPIO 25)
+- ADC2_CH9 (GPIO 26)
+
+### Digital to Analog Converter (DAC)
+There are 2 x 8 bits DAC channels on the ESP32 to convert digital signals into analog voltage signal outputs. These are the DAC channels:
+
+- DAC1 (GPIO25)
+- DAC2 (GPIO26)
+
+GPIO current drawn
+The absolute maximum current drawn per GPIO is 40mA according to the “Recommended Operating Conditions” section in the ESP32 datasheet.

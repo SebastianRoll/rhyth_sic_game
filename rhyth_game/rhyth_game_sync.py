@@ -2,6 +2,7 @@
 from utils import timed_function
 import ustruct
 import music
+from array import array
 # from songs import song_list
 #from mp3_player.mp3_rhythgame import Mp3
 #import mp3
@@ -28,27 +29,36 @@ class SongFinished(Exception):
     pass
 
 
+
 class NeoPixel(Neopixel):
+    def __init__(self, pin, pixels, type=Neopixel.TYPE_RGBW):
+        self.buf = array('L', pixels)
+        super().__init__(pin, pixels, type)
+
+
     # @timed_function
     def set_buffer(self, buf):
+        old_buf = self.buf
         # ar_ints = ustruct.unpack('>{}B'.format(34*4 * 3), buf)
         # ar_leds = [ar_ints[r:r + 3] for r in range(0, len(ar_ints), 3)]
         # print(ar_leds)
-        rgb_buf = bytearray(3)
-        rgb_int = bytearray(1)
-        r = range(len(buf)//3)
         # for i in range(len(buf)):
         #     for b in ustruct.unpack_from('>3c', buf, i):
         #         self.set(i, b, update=False)
-        for led_pos in range(len(buf)//3):
-            rgb_buf = buf[led_pos*3:led_pos*3+3]
-            rgb_int = int.from_bytes(rgb_buf, 'big')
-            self.set(led_pos+1, rgb_int, update=False)
+
+        # set = self.set
+        # for i, c in enumerate(buf):
+        #     set(i, c, update=False)
+
+        for led_pos in range(len(buf)):
+            if old_buf[led_pos] !=  buf[led_pos]:
+                self.set(led_pos+1, buf[led_pos], update=False)
         # for led_pos in r:
         #     rgb_buf[:] = buf[led_pos*3:led_pos*3+3]
         #     rgb_int[0] = int.from_bytes(rgb_buf, 'big')
         #     self.set(led_pos+1, rgb_int[0], update=False)
         self.show()
+        self.buf = buf
 
 
 class Points:
@@ -98,7 +108,7 @@ class Game:
     def time_passed(self):
         return self.time() - self.ts_start
 
-    # @timed_function
+    @timed_function
     def fill_beat_buffer(self):
         time_expired = self.time_passed()
         song = self.song
@@ -121,7 +131,6 @@ class Game:
                 # print("BEAT BUFFER", self.beat_buffer)
                 return
 
-    # @timed_function
     def purge_stale_beats(self):
         time_window = 0
         time_window_max = self.time_window_max
@@ -179,7 +188,7 @@ class RhythGame:
         self.touch_driver = touch_driver
         self.game = None
         # LED memory view - Outer
-        self.outer = bytearray(220*4) #, "ascii")
+        self.outer = array('L', 220)
         self.outer_np = NeoPixel(Pin(pin_outer), 220, Neopixel.TYPE_RGBW)
         self.outer_mv = memoryview(self.outer)
         self.outer_leds = {
@@ -188,14 +197,14 @@ class RhythGame:
         }
 
         # LED memory view - Note pins
-        led_count = 34*3
+        led_count = 34
         self.led_count = led_count
-        self.ws2812 = bytearray(4*led_count)
+        self.ws2812 = array('L', 4*led_count)
         self.ws2812_np = NeoPixel(Pin(pin_ws2812), 34*4)
         self.ws2812_np.clear()
         self.ws2812_mv = memoryview(self.ws2812)
 
-        self.ws2813 = bytearray(4*led_count)
+        self.ws2813 = array('L', 4*led_count)
         self.ws2813_np = NeoPixel(Pin(pin_ws2813), 34*4) #5
         # ((T1H, T1L), (T0H, T0L), Treset) = [(580, 220), (220, 580), 280000]  # WORKS PERFECTLY FOR WS2813!
         #self.ws2813_np.timings([(T1H, T1L), (T0H, T0L), Treset])
@@ -278,28 +287,19 @@ class RhythGame:
                         mv = self.notes_led[note]
                         if was_hit:
                             is_hit = True
-                            # self.outer_leds['bot'] = 0xaa000000 *
-                            mv[-3] = 0x00
-                            mv[-2] = 0xFF
-                            mv[-1] = 0x00
+                            mv[-1] = 0x00FF00
                         else:
                             is_miss = True
-                            mv[-3] = 0xFF
-                            mv[-2] = 0x00
-                            mv[-1] = 0x00
+                            mv[-1] = 0xFF0000
 
                 self.refresh_outer_leds(is_hit, is_miss)
 
                 # reverse leds
                 self.reverse_leds()
 
-                self.ws2813_np.set_buffer(self.ws2813)
                 self.ws2812_np.set_buffer(self.ws2812)
+                self.ws2813_np.set_buffer(self.ws2813)
 
-                # self.ws2813_np.buf = self.ws2813
-                # self.ws2813_np.write()
-                # self.outer_np.set_buffer(self.outer, brightness=self.brightness)
-                # self.outer_np.write()
                 o += 1
             except Exception as e:
                 print("You stuck", game.points.score)
@@ -319,8 +319,7 @@ class RhythGame:
     def reverse_leds(self):
         for note, mv in self.notes_led.items():
             if note % 2 is 1:
-                mv[:] = bytearray(reversed(mv))
-
+                mv[:] = array('L', reversed(mv))
 
     def get_beat_positions(self, note_id, time_passed):
         """
@@ -346,13 +345,13 @@ class RhythGame:
 
     def refresh_leds(self):
         """
-        Updates the bytearray buffers, but does not send the buffer to Neopixel pin.
+        Updates the array buffers, but does not send the buffer to Neopixel pin.
         :return: None
         """
 
         # clear previous buffer
-        self.ws2812[:] = bytearray(len(self.ws2812))
-        self.ws2813[:] = bytearray(len(self.ws2813))
+        self.ws2812[:] = array('L', len(self.ws2812))
+        self.ws2813[:] = array('L', len(self.ws2813))
         notes_anim = self.notes_anim
 
         for note_id, mv in self.notes_led.items():
@@ -370,18 +369,14 @@ class RhythGame:
                 if pos < 0 or pos > 33:
                     print("POS IS", pos)
                 if note_id % 4 == 0:
-                    mv[(pos) * 3] = 0xAC
-                    mv[(pos) * 3 + 1] = 0xAC
+                    mv[(pos)] = 0xACAC00
                 elif note_id % 4 == 1:
-                    mv[(pos)*3+1] = 0xCF
+                    mv[(pos)+1] = 0x00CF00
                 elif note_id % 4 == 2:
-                    mv[(pos)*3+2] = 0xCF
+                    mv[(pos)+2] = 0x0000CF
                 elif note_id % 4 == 3:
-                    mv[(pos) * 3] = 0xAC
-                    mv[(pos)*3+2] = 0xAC
-            mv[-3] = 0xAF
-            mv[-2] = 0xAF
-            mv[-1] = 0xAF
+                    mv[(pos)] = 0xAC00AC
+            mv[-1] = 0xAFAFAF
 
         # load outer animation
         outer_anim = self.outer_anim
