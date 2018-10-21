@@ -314,7 +314,7 @@ class RhythGame:
 
                 o += 1
             except Exception as e:
-                print("You stuck", game.points.score)
+                print("Game over! Score:", game.points.score)
                 print(e)
                 game.song.close_file()
                 raise
