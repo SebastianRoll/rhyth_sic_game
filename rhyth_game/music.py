@@ -1,7 +1,6 @@
 # from songs.dr_chaos.meta import dr_chaos
 # from songs.dr_chaos.meta import dr_chaos
 from songs.boom_clap.meta import meta as dr_chaos
-from songs import song_list
 # import os
 from utils import timed_function
 import ustruct

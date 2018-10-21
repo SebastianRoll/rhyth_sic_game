@@ -28,6 +28,9 @@ import pin_definitions as p
 # DAC: 25, 26
 
 
+# gc.collect()
+# gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+
 
 # r.notes_anim[1] = None
 # r.notes_anim[0] = r.notes_anim[1]
@@ -119,8 +122,8 @@ playlist = {
             # 'Elemental Creati':'Easy',
             # 'Salt N Peppa - Push It':'easy',
             # 'Punjabi MC - Munda Tho Bach Ke Rahi':'medium',
-            # 'I know You know':'Beginner',
-            'Bad Apple':'Easy',
+            'I know You know':'Medium',
+            # 'Bad Apple':'Easy',
             # 'Southern Country 2':'Medium',
             # 'Eternal': 'Hard'
 }

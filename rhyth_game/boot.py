@@ -57,7 +57,7 @@ def df():
 
 
 def free(full=False):
-  gc.collect()
+  # gc.collect()
   F = gc.mem_free()
   A = gc.mem_alloc()
   T = F+A

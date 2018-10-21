@@ -2,7 +2,6 @@ import utime as time
 
 import music
 
-
 class LastBeatSent(Exception):
     pass
 
@@ -54,7 +53,6 @@ class Game:
     def time_passed(self):
         return self.time() - self.ts_start
 
-    # @timed_function
     def fill_beat_buffer(self):
         time_expired = self.time_passed()
         song = self.song
@@ -95,7 +93,6 @@ class Game:
                 else:
                     break
 
-    # @timed_function
     def handle_hit(self, note, touch_ts):
         hit = False
         beats = self.beat_buffer[note]
@@ -121,6 +118,5 @@ class Game:
             self.points.miss()
         return hit
 
-    # @timed_function
     def add_beat(self, note, ts):
         self.beat_buffer[note].append(ts)

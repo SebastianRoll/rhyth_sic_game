@@ -1,5 +1,7 @@
 import utime
 import machine
+import gc
+
 
 def timed_function(f, *args, **kwargs):
     myname = str(f).split(' ')[1]
@@ -8,8 +10,24 @@ def timed_function(f, *args, **kwargs):
         result = f(*args, **kwargs)
         delta = utime.ticks_diff(utime.ticks_us(), t)
         print('Function {} Time = {:6.3f}ms'.format(myname, delta/1000))
+
+        # if delta > 30000:
+            # print(free(full=True))
+            # print(*args, **kwargs)
+            # print('Function {} Time = {:6.3f}ms'.format(myname, delta/1000))
+            # raise Exception('Function {} Time = {:6.3f}ms'.format(myname, delta/1000))
         return result
     return new_func
+
+
+def free(full=False):
+  # gc.collect()
+  F = gc.mem_free()
+  A = gc.mem_alloc()
+  T = F+A
+  P = '{0:.2f}%'.format(F/T*100)
+  if not full: return P
+  else : return ('Total:{0} Free:{1} ({2})'.format(T,F,P))
 
 
 def reset():
