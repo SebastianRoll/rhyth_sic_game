@@ -1,7 +1,5 @@
 
 from utils import timed_function
-import ustruct
-import music
 from array import array
 # from songs import song_list
 #from mp3_player.mp3_rhythgame import Mp3
@@ -9,6 +7,8 @@ from array import array
 from machine import Pin, UART, Neopixel
 import utime as time
 import pin_definitions as p
+from game import Points, Game, LastBeatSent
+
 uart = UART(2, baudrate=9600, rx=p.pin_uart2_rx, tx=p.pin_uart2_tx, timeout=10)
 import mp3_player.yx5300 as cmd
 uart.write(cmd.set_volume(30))
@@ -22,9 +22,6 @@ def mp3_reset():
 
 
 # from animations.fire4 import Fire
-class LastBeatSent(Exception):
-    pass
-
 
 class SongFinished(Exception):
     pass
@@ -33,157 +30,23 @@ class SongFinished(Exception):
 
 class NeoPixel(Neopixel):
     def __init__(self, pin, pixels, type=Neopixel.TYPE_RGB):
-        self.buf = array('L', pixels)
+        self.oldbuf = array('L', pixels)
         super().__init__(pin, pixels, type)
-
 
     # @timed_function
     def set_buffer(self, buf):
-        old_buf = self.buf
-        # ar_ints = ustruct.unpack('>{}B'.format(34*4 * 3), buf)
-        # ar_leds = [ar_ints[r:r + 3] for r in range(0, len(ar_ints), 3)]
-        # print(ar_leds)
-        # for i in range(len(buf)):
-        #     for b in ustruct.unpack_from('>3c', buf, i):
-        #         self.set(i, b, update=False)
-
-        # set = self.set
-        # for i, c in enumerate(buf):
-        #     set(i, c, update=False)
-
+        old_buf = self.oldbuf
         for led_pos in range(len(buf)):
-            c = int(buf[led_pos]) & 0xFFFFFF
-            self.set(led_pos + 1, c, update=False)
-            # if old_buf[led_pos] !=  buf[led_pos]:
-            #     print(led_pos, buf[led_pos])
-            #     c = int(buf[led_pos]) & 0xFFFFFF
-            #     self.set(led_pos+1, c, update=False)
-        # for led_pos in r:
-        #     rgb_buf[:] = buf[led_pos*3:led_pos*3+3]
-        #     rgb_int[0] = int.from_bytes(rgb_buf, 'big')
-        #     self.set(led_pos+1, rgb_int[0], update=False)
+            # c = int(buf[led_pos]) & 0xFFFFFF
+            # self.set(led_pos + 1, c, update=False)
+            if not old_buf[led_pos] == buf[led_pos]:
+                # print(led_pos, buf[led_pos])
+                c = int(buf[led_pos]) & 0xFFFFFF
+                self.set(led_pos+1, c, update=False)
         self.show()
-        self.buf = buf
-        time.sleep_ms(10)
+        self.oldbuf = buf[:]
+        # time.sleep_ms(10)
 
-
-class Points:
-    def __init__(self):
-        self.hits = 0
-        self.score = 0
-        self.multiplier = 0
-        self.combo_count = 0
-
-    def hit(self):
-        try:
-            self.hits += 1
-            self.combo_count += 1
-            self.multiplier = max(self.combo_count // 3, 1)
-            self.score += self.multiplier
-            # print(self.score, self.multiplier)
-        except Exception as e:
-            print(e)
-            raise
-
-    def miss(self):
-        self.combo_count = 0
-        self.score -= 1
-        # print(self.score, self.multiplier)
-
-
-class Game:
-    def __init__(self, song_title, difficulty='easy', debug=False):
-        self.debug = debug
-        self.song = music.Song(song_title, difficulty=difficulty)
-        self.points = Points()
-        # self.mp3 = Mp3()
-
-        # beats
-        self.beat_buffer = {k:[] for k in range(8)}
-
-        # time
-        self.time = time.ticks_ms
-        self.ts_start = self.time()
-
-        self.time_window_max = 200
-
-        # Beats buffer
-        self.beat_last_ts = 0
-        self.beat_buffer_padding_ms = 500
-
-    def time_passed(self):
-        return self.time() - self.ts_start
-
-    # @timed_function
-    def fill_beat_buffer(self):
-        time_expired = self.time_passed()
-        song = self.song
-        beat_buffer_ms = self.song.beat_ms_before_hit + self.beat_buffer_padding_ms
-        # print("filling beat buffer")
-        while True:
-            # print(abc, beat_buffer_ms, time_expired + beat_buffer_ms)
-            if self.beat_last_ts <= time_expired + beat_buffer_ms:
-                beat = song.next()
-                if self.debug:
-                    print(beat)
-                if beat is None:
-                    raise LastBeatSent("Song finished")
-                ts, notes = beat
-                # print(ts, notes)
-                for note in notes:
-                    self.add_beat(note, ts)
-                self.beat_last_ts = ts
-            else:
-                # print("BEAT BUFFER", self.beat_buffer)
-                return
-
-    def purge_stale_beats(self):
-        time_window = 0
-        time_window_max = self.time_window_max
-        time_passed = self.time_passed()
-        for beats in self.beat_buffer.values():
-            while True:
-                if len(beats) > 0:
-                    oldest_ts = beats[0]
-                    time_window = time_passed - oldest_ts
-                    if time_window > time_window_max:
-                        # print("MISS PURGE")
-                        beats.pop(0)
-                        self.points.miss()
-                    else:
-                        break
-                else:
-                    break
-
-    # @timed_function
-    def handle_hit(self, note, touch_ts):
-        hit = False
-        beats = self.beat_buffer[note]
-        time_window = 0
-        time_window_max = self.time_window_max
-        for idx, oldest_ts in enumerate(beats):
-            # oldest_ts = beats.pop(0)
-            time_window = touch_ts - oldest_ts
-            # print('window', time_window, touch_ts, oldest_ts)
-            if time_window > time_window_max:
-                continue
-            elif abs(time_window) <= time_window_max:
-                # HIT
-                hit = True
-                beats.pop(idx)
-                break
-            else:
-                # MISS
-                break
-        if hit:
-            self.points.hit()
-        else:
-            self.points.miss()
-        return hit
-
-    # @timed_function
-    def add_beat(self, note, ts):
-        self.beat_buffer[note].append(ts)
 
 
 class RhythGame:
@@ -287,6 +150,7 @@ class RhythGame:
                         break
                 self.tick_animation()
                 self.refresh_leds()
+
                 is_hit = False
                 is_miss = False
                 if touch_driver:
@@ -310,7 +174,7 @@ class RhythGame:
                 self.reverse_leds()
 
                 self.ws2812_np.set_buffer(self.ws2812)
-                self.ws2813_np.set_buffer(self.ws2813)
+                # self.ws2813_np.set_buffer(self.ws2813)
 
                 o += 1
             except Exception as e:
@@ -380,14 +244,15 @@ class RhythGame:
             for pos in positions:
                 if pos < 0 or pos > 33:
                     print("POS IS", pos)
-                if note_id % 4 == 0:
-                    mv[pos] = 0xACAC00
-                elif note_id % 4 == 1:
-                    mv[pos] = 0x00CF00
-                elif note_id % 4 == 2:
-                    mv[pos] = 0x0000CF
-                elif note_id % 4 == 3:
-                    mv[pos] = 0xAC00AC
+                # if note_id % 4 == 0:
+                #     mv[pos] = 0xACAC00
+                # elif note_id % 4 == 1:
+                #     mv[pos] = 0x00CF00
+                # elif note_id % 4 == 2:
+                #     mv[pos] = 0x0000CF
+                # elif note_id % 4 == 3:
+                #     mv[pos] = 0xAC00AC
+                mv[pos] = 0x0000AC
             mv[-1] = 0xAFAFAF
 
         # load outer animation
