@@ -1,5 +1,4 @@
-
-from utils import timed_function
+# from utils import timed_function
 from array import array
 # from songs import song_list
 #from mp3_player.mp3_rhythgame import Mp3
@@ -168,7 +167,7 @@ class RhythGame:
                             mv[-1] = 0xFF0000
 
                 self.refresh_outer_leds(is_hit, is_miss)
-                # time.sleep_ms(10)
+                time.sleep_ms(10)
 
                 # reverse leds
                 self.reverse_leds()

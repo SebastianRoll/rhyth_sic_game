@@ -118,8 +118,8 @@ playlist = {
             # 'Elemental Creati':'Easy',
             # 'Salt N Peppa - Push It':'easy',
             # 'Punjabi MC - Munda Tho Bach Ke Rahi':'medium',
-            # 'I know You know':'Beginner',
-            # 'Bad Apple':'Easy',
+            'I know You know':'Beginner',
+            'Bad Apple':'Easy',
             # 'Southern Country 2':'Medium',
             # 'Eternal': 'Hard'
 }
