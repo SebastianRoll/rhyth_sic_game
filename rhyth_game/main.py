@@ -111,19 +111,19 @@ menu = Menu()
 # menu.r.notes_anim[5] = fire
 # menu.r.notes_anim[6] = fire
 # menu.r.notes_anim[7] = fire
+# while True:
 playlist = {
             # 'Through the Fire and Flame': 'Easy',
             # 'Caramelldansen (Speedycake Remix)': 'Easy',
-            'boom_clap':'Challenge',
+            # 'boom_clap':'Challenge',
             # 'Elemental Creati':'Easy',
             # 'Salt N Peppa - Push It':'easy',
             # 'Punjabi MC - Munda Tho Bach Ke Rahi':'medium',
-            'I know You know':'Beginner',
+            # 'I know You know':'Beginner',
             'Bad Apple':'Easy',
             # 'Southern Country 2':'Medium',
             # 'Eternal': 'Hard'
 }
-# while True:
 for s, d in playlist.items():
     try:
         menu.play(song=s, difficulty=d, delay_ms=270)

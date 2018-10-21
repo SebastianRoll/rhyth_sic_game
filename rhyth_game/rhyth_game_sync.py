@@ -80,6 +80,7 @@ class RhythGame:
         #self.ws2813_np.timings([(T1H, T1L), (T0H, T0L), Treset])
 
         self.ws2813_np.clear()
+        time.sleep_ms(20)
         self.ws2813_mv = memoryview(self.ws2813)
 
         # LED memory view - Notes
@@ -120,7 +121,7 @@ class RhythGame:
     def play_song(self, title='dr_chaos', delay_ms=500, difficulty='easy'):
         game = Game(title, difficulty=difficulty, debug=self.debug)
         touch_driver = self.touch_driver
-        touch_count = len(touch_driver.touchpads)
+        # touch_count = len(touch_driver.touchpads)
         game.song.open_file()
         self.game = game
         o = 0
