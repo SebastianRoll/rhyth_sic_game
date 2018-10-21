@@ -6,7 +6,7 @@ pin_ws2812 = 21
 pin_ws2813 = 22
 pin_outer = 19
 
-touch_pins = [4,0,2,15,13,14,27,33]
+touch_pins = [4,0,2,15,13,14,27,32]
 
 left = [15, 13, 14, 27]
 right = []

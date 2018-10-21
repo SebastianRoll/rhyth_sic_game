@@ -46,3 +46,17 @@ class Touch:
             print(e)
             raise
 
+    def check_touch(self, i, update=True):
+        t = self.touchpads[i]
+        was_t = self.was_touched
+        v = t.read()
+        v = int(v < self.threshold)
+        if update:
+            if v and was_t[i] == 0:  # (ts - ts_touches[i]) > debounce_ms:
+                # ts_touches[i] = ts
+                was_t[i] = 1
+            elif not v:
+                was_t[i] = 0
+        return v
+
+

@@ -44,12 +44,12 @@ class Menu:
         }
 
         self.song_list = {
-            'Caramelldansen (Speedycake Remix)': 1,
+            # 'Caramelldansen (Speedycake Remix)': 9999,
             'Bad Apple': 3,
             # 'Elemental Creati': 3,
             'I know You know': 2,
             'boom_clap': 4,
-            'Through the Fire and Flame': 1,
+            # 'Through the Fire and Flame': 1,
             'Southern Country 2': 7,
             # 'Eternal': 8,
             # 'Punjabi MC - Munda Tho Bach Ke Rahi': 9,
@@ -113,12 +113,12 @@ menu = Menu()
 # menu.r.notes_anim[7] = fire
 playlist = {
             # 'Through the Fire and Flame': 'Easy',
-            'Caramelldansen (Speedycake Remix)': 'Easy',
-            # 'boom_clap':'Challenge',
+            # 'Caramelldansen (Speedycake Remix)': 'Easy',
+            'boom_clap':'Challenge',
             # 'Elemental Creati':'Easy',
             # 'Salt N Peppa - Push It':'easy',
             # 'Punjabi MC - Munda Tho Bach Ke Rahi':'medium',
-            # 'I know You know':'Hard',
+            # 'I know You know':'Beginner',
             # 'Bad Apple':'Easy',
             # 'Southern Country 2':'Medium',
             # 'Eternal': 'Hard'

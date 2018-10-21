@@ -8,7 +8,8 @@ from array import array
 #import mp3
 from machine import Pin, UART, Neopixel
 import utime as time
-uart = UART(2, baudrate=9600, rx=32, tx=25, timeout=10)
+import pin_definitions as p
+uart = UART(2, baudrate=9600, rx=p.pin_uart2_rx, tx=p.pin_uart2_tx, timeout=10)
 import mp3_player.yx5300 as cmd
 uart.write(cmd.set_volume(30))
 def play(track, delay_ms=100):
@@ -31,7 +32,7 @@ class SongFinished(Exception):
 
 
 class NeoPixel(Neopixel):
-    def __init__(self, pin, pixels, type=Neopixel.TYPE_RGBW):
+    def __init__(self, pin, pixels, type=Neopixel.TYPE_RGB):
         self.buf = array('L', pixels)
         super().__init__(pin, pixels, type)
 
@@ -51,14 +52,19 @@ class NeoPixel(Neopixel):
         #     set(i, c, update=False)
 
         for led_pos in range(len(buf)):
-            if old_buf[led_pos] !=  buf[led_pos]:
-                self.set(led_pos+1, buf[led_pos], update=False)
+            c = int(buf[led_pos]) & 0xFFFFFF
+            self.set(led_pos + 1, c, update=False)
+            # if old_buf[led_pos] !=  buf[led_pos]:
+            #     print(led_pos, buf[led_pos])
+            #     c = int(buf[led_pos]) & 0xFFFFFF
+            #     self.set(led_pos+1, c, update=False)
         # for led_pos in r:
         #     rgb_buf[:] = buf[led_pos*3:led_pos*3+3]
         #     rgb_int[0] = int.from_bytes(rgb_buf, 'big')
         #     self.set(led_pos+1, rgb_int[0], update=False)
         self.show()
         self.buf = buf
+        time.sleep_ms(10)
 
 
 class Points:
@@ -108,7 +114,7 @@ class Game:
     def time_passed(self):
         return self.time() - self.ts_start
 
-    @timed_function
+    # @timed_function
     def fill_beat_buffer(self):
         time_expired = self.time_passed()
         song = self.song
@@ -206,8 +212,11 @@ class RhythGame:
 
         self.ws2813 = array('L', 4*led_count)
         self.ws2813_np = NeoPixel(Pin(pin_ws2813), 34*4) #5
+
+        # -- DON'T USE TIMINGS ANYMORE!
         # ((T1H, T1L), (T0H, T0L), Treset) = [(580, 220), (220, 580), 280000]  # WORKS PERFECTLY FOR WS2813!
         #self.ws2813_np.timings([(T1H, T1L), (T0H, T0L), Treset])
+
         self.ws2813_np.clear()
         self.ws2813_mv = memoryview(self.ws2813)
 
@@ -249,6 +258,7 @@ class RhythGame:
     def play_song(self, title='dr_chaos', delay_ms=500, difficulty='easy'):
         game = Game(title, difficulty=difficulty, debug=self.debug)
         touch_driver = self.touch_driver
+        touch_count = len(touch_driver.touchpads)
         game.song.open_file()
         self.game = game
         o = 0
@@ -281,6 +291,7 @@ class RhythGame:
                 is_miss = False
                 if touch_driver:
                     pads_hit = touch_driver.cb()
+                    # pads_hit = [touch_driver.check_touch(o % touch_count)]
                     for note in pads_hit:
                         # print('touch', note)
                         was_hit = game.handle_hit(note, game.time_passed())
@@ -292,13 +303,14 @@ class RhythGame:
                             is_miss = True
                             mv[-1] = 0xFF0000
 
-                self.refresh_outer_leds(is_hit, is_miss)
+                # self.refresh_outer_leds(is_hit, is_miss)
+                # time.sleep_ms(10)
 
                 # reverse leds
                 self.reverse_leds()
 
                 self.ws2812_np.set_buffer(self.ws2812)
-                self.ws2813_np.set_buffer(self.ws2813)
+                # self.ws2813_np.set_buffer(self.ws2813)
 
                 o += 1
             except Exception as e:
@@ -329,7 +341,7 @@ class RhythGame:
         """
         positions = []
         time_delta_ms = 0
-        steps = (self.led_count//3) - 1
+        steps = (self.led_count) - 1
         beat_ms_before_hit = self.game.song.beat_ms_before_hit
         steps_per_ms = steps/beat_ms_before_hit
         beats = self.game.beat_buffer[note_id]
@@ -369,13 +381,13 @@ class RhythGame:
                 if pos < 0 or pos > 33:
                     print("POS IS", pos)
                 if note_id % 4 == 0:
-                    mv[(pos)] = 0xACAC00
+                    mv[pos] = 0xACAC00
                 elif note_id % 4 == 1:
-                    mv[(pos)+1] = 0x00CF00
+                    mv[pos] = 0x00CF00
                 elif note_id % 4 == 2:
-                    mv[(pos)+2] = 0x0000CF
+                    mv[pos] = 0x0000CF
                 elif note_id % 4 == 3:
-                    mv[(pos)] = 0xAC00AC
+                    mv[pos] = 0xAC00AC
             mv[-1] = 0xAFAFAF
 
         # load outer animation
@@ -403,6 +415,6 @@ class RhythGame:
         self.ws2812_np.clear()
         self.outer_np.clear()
         time.sleep_ms(500)
-        self.ws2813_np.deinit()
-        self.ws2812_np.deinit()
-        self.outer_np.deinit()
+        # self.ws2813_np.deinit()
+        # self.ws2812_np.deinit()
+        # self.outer_np.deinit()
