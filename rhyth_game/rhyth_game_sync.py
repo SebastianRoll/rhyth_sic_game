@@ -303,14 +303,14 @@ class RhythGame:
                             is_miss = True
                             mv[-1] = 0xFF0000
 
-                # self.refresh_outer_leds(is_hit, is_miss)
+                self.refresh_outer_leds(is_hit, is_miss)
                 # time.sleep_ms(10)
 
                 # reverse leds
                 self.reverse_leds()
 
                 self.ws2812_np.set_buffer(self.ws2812)
-                # self.ws2813_np.set_buffer(self.ws2813)
+                self.ws2813_np.set_buffer(self.ws2813)
 
                 o += 1
             except Exception as e:
