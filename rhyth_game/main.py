@@ -84,7 +84,7 @@ class Menu:
             print("SCORE", r.game.points.score)
             return
         except Exception:
-            r.clean_up()
+            r.clear_after_song()
             raise
 
     def select_option(self, options: list):
@@ -123,16 +123,39 @@ playlist = {
             # 'Salt N Peppa - Push It':'easy',
             # 'Punjabi MC - Munda Tho Bach Ke Rahi':'medium',
             'I know You know':'Medium',
-            # 'Bad Apple':'Easy',
+            'Bad Apple':'Easy',
             # 'Southern Country 2':'Medium',
             # 'Eternal': 'Hard'
 }
-for s, d in playlist.items():
-    try:
-        menu.play(song=s, difficulty=d, delay_ms=270)
-        time.sleep_ms(15000)
-    except KeyboardInterrupt:
-        menu.r.clear_after_song()
+difficulties = {
+    0: (0x0000ff,'Beginner'),
+    1: (0xaaaa0,'Easy'),
+    2: (0xaa1000,'Medium'),
+    3: (0xff0000,'Hard'),
+}
+
+while True:
+    for s, d in playlist.items():
+        gc.collect()
+        try:
+            for i, (c, diff) in difficulties.items():
+                menu.r.notes_led[i][-1] = c
+                menu.r.notes_led[i][-2] = c
+                menu.r.notes_led[i][-3] = c
+            menu.r.refresh_leds()
+            while True:
+                time.sleep_ms(50)
+                touched = menu.t.cb()
+                if touched:
+                    touched = touched[0]
+                    try:
+                        d = difficulties[touched][1]
+                        menu.play(song=s, difficulty=d, delay_ms=270)
+                        time.sleep_ms(5000)
+                    except KeyError:
+                        pass
+        except KeyboardInterrupt:
+            menu.r.clear_after_song()
 
 # def main():
 #     Menu()
